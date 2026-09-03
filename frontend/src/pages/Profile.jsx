@@ -130,30 +130,30 @@ export default function Profile() {
           ) : (
             <>
               <div className="flex flex-col items-center text-center mb-8">
-  <div className="relative mb-4">
-    <div className="w-24 h-24 rounded-full bg-orange-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
-      {initials}
-    </div>
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 rounded-full bg-orange-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
+                    {initials}
+                  </div>
 
-    <div className="absolute bottom-1 right-1 w-5 h-5 bg-orange-400 border-4 border-white rounded-full"></div>
-  </div>
+                  <div className="absolute bottom-1 right-1 w-5 h-5 bg-orange-400 border-4 border-white rounded-full"></div>
+                </div>
 
-  <h3 className="text-3xl font-bold text-slate-900">
-    {user?.name}
-  </h3>
+                <h3 className="text-3xl font-bold text-slate-900">
+                  {user?.name}
+                </h3>
 
-  <p className="text-lg text-gray-500 mt-1">
-    {user?.department}
-  </p>
+                <p className="text-lg text-gray-500 mt-1">
+                  {user?.department}
+                </p>
 
-  <p className="text-sm text-gray-400 mt-1">
-    {user?.email}
-  </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {user?.email}
+                </p>
 
-  <span className="mt-4 px-5 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold tracking-wide">
-    ● {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
-  </span>
-</div>
+                <span className="mt-4 px-5 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold tracking-wide">
+                  ● {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
+                </span>
+              </div>
 
               <hr className="border-gray-200 mb-8" />
 

@@ -92,9 +92,8 @@ export default function Login() {
               value={form.email}
               onChange={handleChange}
               placeholder="Masukkan email Anda"
-              className={`w-full h-12 px-4 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${
-                errors.email ? "border-red-400" : "border-gray-200"
-              }`}
+              className={`w-full h-12 px-4 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${errors.email ? "border-red-400" : "border-gray-200"
+                }`}
             />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
@@ -114,9 +113,8 @@ export default function Login() {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Masukkan password Anda"
-                className={`w-full h-12 px-4 pr-12 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${
-                  errors.password ? "border-red-400" : "border-gray-200"
-                }`}
+                className={`w-full h-12 px-4 pr-12 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${errors.password ? "border-red-400" : "border-gray-200"
+                  }`}
               />
               <button
                 type="button"
