@@ -123,96 +123,112 @@ export default function Profile() {
           </button>
         )}
       </div>
+      <div className="flex justify-center">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10 w-full max-w-6xl mx-auto">
+          {loading && !user ? (
+            <p className="text-gray-400 text-center">Memuat data...</p>
+          ) : (
+            <>
+              <div className="flex flex-col items-center text-center mb-8">
+  <div className="relative mb-4">
+    <div className="w-24 h-24 rounded-full bg-orange-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
+      {initials}
+    </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-10 max-w-3xl">
-        {loading && !user ? (
-          <p className="text-gray-400 text-center">Memuat data...</p>
-        ) : (
-          <>
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-orange-500 text-white flex items-center justify-center text-2xl font-bold mb-3">
-                {initials}
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900">{user?.name}</h3>
-              <p className="text-gray-500 text-sm">{user?.department}</p>
-              <span className="mt-3 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
-                {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
-              </span>
-            </div>
+    <div className="absolute bottom-1 right-1 w-5 h-5 bg-orange-400 border-4 border-white rounded-full"></div>
+  </div>
 
-            <hr className="border-gray-100 mb-6" />
+  <h3 className="text-3xl font-bold text-slate-900">
+    {user?.name}
+  </h3>
 
-            {editing ? (
-              <form onSubmit={handleSave}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                  <EditableField
-                    icon={FaUser}
-                    label="Nama Lengkap"
-                    name="name"
-                    value={form.name}
-                    onChange={handleFormChange}
-                    required
-                  />
-                  <EditableField
-                    icon={FaBuilding}
-                    label="Divisi"
-                    name="department"
-                    value={form.department}
-                    onChange={handleFormChange}
-                    required
-                  />
-                  <EditableField
-                    icon={FaEnvelope}
-                    label="Email Perusahaan"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleFormChange}
-                  />
-                  <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
-                  <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
-                </div>
+  <p className="text-lg text-gray-500 mt-1">
+    {user?.department}
+  </p>
 
-                <div className="flex justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={cancelEditing}
-                    disabled={saving}
-                    className="flex items-center gap-2 h-11 px-6 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-60"
-                  >
-                    <FaTimes size={14} /> Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="flex items-center gap-2 h-11 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium disabled:opacity-60"
-                  >
-                    <FaSave size={14} /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                  <Field icon={FaUser} label="Nama Lengkap" value={user?.name} />
-                  <Field icon={FaBuilding} label="Divisi" value={user?.department} />
-                  <Field icon={FaEnvelope} label="Email Perusahaan" value={user?.email} />
-                  <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
-                  <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
-                </div>
+  <p className="text-sm text-gray-400 mt-1">
+    {user?.email}
+  </p>
 
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 h-11 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium"
-                  >
-                    <FaSignOutAlt size={14} /> Keluar
-                  </button>
-                </div>
-              </>
-            )}
-          </>
-        )}
+  <span className="mt-4 px-5 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold tracking-wide">
+    ● {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
+  </span>
+</div>
+
+              <hr className="border-gray-200 mb-8" />
+
+              {editing ? (
+                <form onSubmit={handleSave}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <EditableField
+                      icon={FaUser}
+                      label="Nama Lengkap"
+                      name="name"
+                      value={form.name}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <EditableField
+                      icon={FaBuilding}
+                      label="Divisi"
+                      name="department"
+                      value={form.department}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <EditableField
+                      icon={FaEnvelope}
+                      label="Email Perusahaan"
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleFormChange}
+                    />
+                    <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
+                    <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
+                  </div>
+
+                  <div className="flex justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={cancelEditing}
+                      disabled={saving}
+                      className="flex items-center gap-2 h-11 px-6 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-60"
+                    >
+                      <FaTimes size={14} /> Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex items-center gap-2 h-11 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium disabled:opacity-60"
+                    >
+                      <FaSave size={14} /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <Field icon={FaUser} label="Nama Lengkap" value={user?.name} />
+                    <Field icon={FaBuilding} label="Divisi" value={user?.department} />
+                    <Field icon={FaEnvelope} label="Email Perusahaan" value={user?.email} />
+                    <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
+                    <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
+                  </div>
+
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 h-11 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                    >
+                      <FaSignOutAlt size={14} /> Keluar
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
@@ -220,11 +236,11 @@ export default function Profile() {
 
 function Field({ icon: Icon, label, value }) {
   return (
-    <div className="bg-gray-50 rounded-md px-4 py-3">
+    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
       <p className="flex items-center gap-2 text-xs text-gray-400 mb-1">
         <Icon size={12} /> {label.toUpperCase()}
       </p>
-      <p className="text-slate-900 font-medium">{value || "-"}</p>
+      <p className="text-slate-900 font-semibold text-xl mt-2">{value || "-"}</p>
     </div>
   );
 }

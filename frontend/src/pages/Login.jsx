@@ -58,7 +58,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f5fb] flex items-center justify-center px-4 relative">
+    <div className="w-screen min-h-screen bg-[#f4f5fb] flex items-center justify-center">
       <span className="absolute top-6 left-6 text-gray-300 font-medium">Login</span>
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 p-10">
