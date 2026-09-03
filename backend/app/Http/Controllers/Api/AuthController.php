@@ -55,6 +55,36 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => ['required', 'string', 'max:255'],
+        'department' => ['nullable', 'string', 'max:255'],
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'message' => 'Data tidak valid.',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
+
+    $user = $request->user();
+
+    $user->update($validator->validated());
+
+    return response()->json([
+        'message' => 'Profile berhasil diperbarui.',
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'department' => $user->department,
+        ],
+    ]);
+}
+
     public function logout(Request $request)
     {
         $plainToken = $request->bearerToken();

@@ -65,7 +65,7 @@ class ReimbursementController extends Controller
 
         $reimbursement = Reimbursement::create([
             'user_id' => $user->id,
-            'project_id' => $data['project_id'] ?? null,
+            'project_id' => $data['project'] ?? null,
             'date' => $data['date'],
             'purpose' => $data['purpose'],
             'status' => ReimbursementStatus::DRAFT->value,
