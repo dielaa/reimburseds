@@ -19,14 +19,17 @@ class ApprovalController extends Controller
         $this->guardMenungguApproval($reimbursement);
 
         $approver = $request->user();
+        $note = $request->input('note');
 
         $reimbursement->approvals()->create([
             'approver_id' => $approver->id,
             'status' => ApprovalStatus::APPROVED->value,
+            'note' => $note,
             'decided_at' => now(),
         ]);
 
         $reimbursement->update(['status' => ReimbursementStatus::DISETUJUI->value]);
+        $logMessage = 'Disetujui oleh Project Manager/PIC.' . ($note ? " Catatan: {$note}" : '');
         $reimbursement->logStatus(ReimbursementStatus::DISETUJUI, 'Disetujui oleh Project Manager/PIC.', $approver->id);
 
         return response()->json([

@@ -18,10 +18,11 @@ class FinanceController extends Controller
     {
         $this->guardStatus($reimbursement, ReimbursementStatus::DISETUJUI);
 
+        $note = $request->input('note');
         $reimbursement->update(['status' => ReimbursementStatus::VERIFIKASI_FINANCE->value]);
         $reimbursement->logStatus(
             ReimbursementStatus::VERIFIKASI_FINANCE,
-            'Sedang diverifikasi oleh Finance.',
+            'Sedang diverifikasi oleh Finance.' . ($note ? " Catatan: {$note}" : ''),
             $request->user()->id
         );
 
@@ -62,8 +63,13 @@ class FinanceController extends Controller
     {
         $this->guardStatus($reimbursement, ReimbursementStatus::VERIFIKASI_FINANCE);
 
+        $note = $request->input('note');
         $reimbursement->update(['status' => ReimbursementStatus::DIPROSES->value]);
-        $reimbursement->logStatus(ReimbursementStatus::DIPROSES, 'Pengajuan masuk proses pembayaran.', $request->user()->id);
+        $reimbursement->logStatus(
+            ReimbursementStatus::DIPROSES,
+            'Pengajuan masuk proses pembayaran.' . ($note ? " Catatan: {$note}" : ''),
+            $request->user()->id
+        );
 
         return response()->json(['message' => 'Pengajuan diproses.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
@@ -76,11 +82,16 @@ class FinanceController extends Controller
     {
         $this->guardStatus($reimbursement, ReimbursementStatus::DIPROSES);
 
+        $note = $request->input('note');
         $reimbursement->update([
             'status' => ReimbursementStatus::DIBAYARKAN->value,
             'paid_at' => now(),
         ]);
-        $reimbursement->logStatus(ReimbursementStatus::DIBAYARKAN, 'Reimbursement telah dibayarkan.', $request->user()->id);
+        $reimbursement->logStatus(
+            ReimbursementStatus::DIBAYARKAN,
+            'Reimbursement telah dibayarkan.' . ($note ? " Catatan: {$note}" : ''),
+            $request->user()->id
+        );
 
         return response()->json(['message' => 'Pembayaran reimbursement dicatat.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
@@ -92,8 +103,13 @@ class FinanceController extends Controller
     {
         $this->guardStatus($reimbursement, ReimbursementStatus::DIBAYARKAN);
 
+        $note = $request->input('note');
         $reimbursement->update(['status' => ReimbursementStatus::SELESAI->value]);
-        $reimbursement->logStatus(ReimbursementStatus::SELESAI, 'Proses reimbursement selesai.', $request->user()->id);
+        $reimbursement->logStatus(
+            ReimbursementStatus::SELESAI,
+            'Proses reimbursement selesai.' . ($note ? " Catatan: {$note}" : ''),
+            $request->user()->id
+        );
 
         return response()->json(['message' => 'Reimbursement selesai.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
