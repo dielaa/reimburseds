@@ -10,7 +10,6 @@ enum ItemCategory: string
     case TRANSPORTASI = 'transportasi';
     case AKOMODASI = 'akomodasi';
     case KONSUMSI = 'konsumsi';
-    case KOMUNIKASI = 'komunikasi';
     case PERLENGKAPAN = 'perlengkapan';
     case LAINNYA = 'lainnya';
 }

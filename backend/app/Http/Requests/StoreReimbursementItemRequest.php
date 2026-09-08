@@ -14,7 +14,7 @@ class StoreReimbursementItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category' => ['required', 'in:transportasi,akomodasi,konsumsi,komunikasi,perlengkapan,lainnya'],
+            'category' => ['required', 'in:transportasi,akomodasi,konsumsi,perlengkapan,lainnya'],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:1'],
         ];

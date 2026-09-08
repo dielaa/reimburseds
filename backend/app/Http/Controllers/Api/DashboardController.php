@@ -33,7 +33,7 @@ class DashboardController extends Controller
             'ditolak' => (clone $base)->where('status', ReimbursementStatus::DITOLAK->value)->count(),
         ];
 
-        $recent = (clone $base)->with('project')->latest()->limit(5)->get();
+        $recent = (clone $base)->latest()->limit(5)->get();
 
         return response()->json([
             'role' => $user->role,

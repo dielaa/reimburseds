@@ -41,11 +41,7 @@ class Reimbursement extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
-    }
-
+    
     public function items(): HasMany
     {
         return $this->hasMany(ReimbursementItem::class);
