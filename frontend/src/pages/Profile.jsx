@@ -22,7 +22,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", department: "", email: "" });
+  const [form, setForm] = useState({ name: "", department: "" });
 
   useEffect(() => {
     api
@@ -53,7 +53,6 @@ export default function Profile() {
     setForm({
       name: user?.name || "",
       department: user?.department || "",
-      email: user?.email || "",
     });
     setEditing(true);
   };
@@ -74,10 +73,9 @@ export default function Profile() {
     }
     setSaving(true);
     try {
-      const res = await api.put("/me", {
+      const res = await api.put("/profile", {
         name: form.name,
         department: form.department,
-        email: form.email,
       });
       const updatedUser = res.data.user || { ...user, ...form };
       setUser(updatedUser);
@@ -176,14 +174,7 @@ export default function Profile() {
                       onChange={handleFormChange}
                       required
                     />
-                    <EditableField
-                      icon={FaEnvelope}
-                      label="Email Perusahaan"
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleFormChange}
-                    />
+                    <Field icon={FaEnvelope} label="Email Perusahaan" value={user?.email} />
                     <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
                     <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
                   </div>

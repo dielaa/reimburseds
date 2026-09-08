@@ -5,7 +5,6 @@ import {
   FaCheckCircle,
   FaClock,
   FaUserCircle,
-  FaQuestionCircle,
   FaSignOutAlt,
 } from "react-icons/fa";
 import api, { clearSession, getStoredUser, ROLE_LABELS } from "../services/api";
