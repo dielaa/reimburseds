@@ -78,7 +78,6 @@ export const CATEGORY_LABELS = {
   transportasi: "Transportasi",
   akomodasi: "Akomodasi",
   konsumsi: "Konsumsi",
-  komunikasi: "Komunikasi",
   perlengkapan: "Perlengkapan",
   lainnya: "Lainnya",
 };
