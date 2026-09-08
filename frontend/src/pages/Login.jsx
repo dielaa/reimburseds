@@ -64,7 +64,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 p-10">
         {/* Logo */}
         <div className="flex flex-col items-center text-center mb-10">
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-gray-700 flex items-center justify-center shadow-sm mb-4 overflow-hidden">
+          <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center shadow-sm mb-4 overflow-hidden">
             <img
               src="/logodasa.png"
               alt="Logo"

@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import Ajukan from "../pages/Ajukan";
 import Riwayat from "../pages/Riwayat";
-import DetailPengajuan from "../pages/DetailPengajuan";
 import Profile from "../pages/Profile";
+import Ajukan from "../pages/karyawan/Ajukan";
 import ProtectedRoute from "../components/ProtectedRoute";
+import RoleDashboard from "./RoleDashboard";
+import RoleDetail from "./RoleDetail";
 
 export default function AppRoutes() {
   return (
@@ -18,7 +18,7 @@ export default function AppRoutes() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <RoleDashboard />
             </ProtectedRoute>
           }
         />
@@ -42,7 +42,7 @@ export default function AppRoutes() {
           path="/riwayat/:id"
           element={
             <ProtectedRoute>
-              <DetailPengajuan />
+              <RoleDetail />
             </ProtectedRoute>
           }
         />
