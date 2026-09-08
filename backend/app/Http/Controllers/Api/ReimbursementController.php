@@ -25,7 +25,7 @@ class ReimbursementController extends Controller
     {
         $user = $request->user();
 
-        $query = Reimbursement::with(['project', 'user'])->latest();
+        $query = Reimbursement::with(['user'])->latest();
 
         if ($user->role === UserRole::KARYAWAN) {
             $query->where('user_id', $user->id);
@@ -65,7 +65,7 @@ class ReimbursementController extends Controller
 
         $reimbursement = Reimbursement::create([
             'user_id' => $user->id,
-            'project_id' => $data['project'] ?? null,
+            'project_id' => $data['project_id'] ?? null,
             'date' => $data['date'],
             'purpose' => $data['purpose'],
             'status' => ReimbursementStatus::DRAFT->value,
@@ -93,7 +93,7 @@ class ReimbursementController extends Controller
 
         return response()->json([
             'data' => $reimbursement->load([
-                'items', 'documents', 'project', 'user',
+                'items', 'documents', 'user',
                 'approvals.approver', 'statusLogs.changedBy',
             ]),
         ]);

@@ -14,7 +14,7 @@ class UpdateReimbursementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['nullable', 'exists:projects,id'],
+            'project' => ['nullable', 'string', 'max:255'],
             'date' => ['sometimes', 'required', 'date'],
             'purpose' => ['sometimes', 'required', 'string', 'max:1000'],
         ];

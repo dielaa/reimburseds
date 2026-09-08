@@ -11,7 +11,10 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('pid_number')->nullable()->unique(); // BR-04
+            $table->string('pid_number')->nullable()->unique();$table->foreignId('project_id')
+    ->nullable()
+    ->constrained('projects')
+    ->nullOnDelete(); // BR-04
             $table->timestamps();
         });
     }

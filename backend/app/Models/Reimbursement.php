@@ -14,7 +14,7 @@ class Reimbursement extends Model
 
     protected $fillable = [
         'user_id',
-        'project',
+        'project_id',
         'date',
         'purpose',
         'total_amount',
