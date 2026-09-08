@@ -46,6 +46,9 @@ Route::middleware('auth.token')->group(function () {
     // Download dokumen: pemilik, PM/PIC, atau Finance (dicek manual di controller)
     Route::get('/reimbursements/{reimbursement}/documents/{document}/download', [ReimbursementDocumentController::class, 'download']);
 
+    // Download bukti pembayaran: pemilik, PM/PIC, atau Finance (dicek manual di controller)
+    Route::get('/reimbursements/{reimbursement}/payment-proof/download', [FinanceController::class, 'downloadProof']);
+
     // ==== Project Manager / PIC (FR-05, FR-06) ====
     Route::middleware('role:pm_pic')->group(function () {
         Route::post('/reimbursements/{reimbursement}/approve', [ApprovalController::class, 'approve']);

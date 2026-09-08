@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RejectRequest;
 use App\Models\Reimbursement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FinanceController extends Controller
 {
@@ -82,11 +83,32 @@ class FinanceController extends Controller
     {
         $this->guardStatus($reimbursement, ReimbursementStatus::DIPROSES);
 
+        $request->validate([
+            'proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'proof.mimes' => 'Format bukti pembayaran harus jpg, jpeg, png, atau pdf.',
+            'proof.max' => 'Ukuran bukti pembayaran maksimal 5MB.',
+        ]);
+
         $note = $request->input('note');
-        $reimbursement->update([
+
+        $update = [
             'status' => ReimbursementStatus::DIBAYARKAN->value,
             'paid_at' => now(),
-        ]);
+        ];
+
+        if ($request->hasFile('proof')) {
+            // Hapus bukti pembayaran lama jika ada (mis. Finance mengunggah ulang).
+            if ($reimbursement->payment_proof_path) {
+                Storage::disk('local')->delete($reimbursement->payment_proof_path);
+            }
+
+            $file = $request->file('proof');
+            $update['payment_proof_path'] = $file->store('payment-proofs/' . $reimbursement->id, 'local');
+            $update['payment_proof_original_name'] = $file->getClientOriginalName();
+        }
+
+        $reimbursement->update($update);
         $reimbursement->logStatus(
             ReimbursementStatus::DIBAYARKAN,
             'Reimbursement telah dibayarkan.' . ($note ? " Catatan: {$note}" : ''),
@@ -112,6 +134,25 @@ class FinanceController extends Controller
         );
 
         return response()->json(['message' => 'Reimbursement selesai.', 'data' => $reimbursement->fresh('statusLogs')]);
+    }
+
+    /**
+     * Unduh/lihat bukti pembayaran (dibatasi hanya untuk pihak berwenang:
+     * pemilik pengajuan, PM/PIC, atau Finance).
+     */
+    public function downloadProof(Request $request, Reimbursement $reimbursement)
+    {
+        $user = $request->user();
+        $isOwner = $reimbursement->user_id === $user->id;
+        $isAuthorizedRole = in_array($user->role->value ?? $user->role, ['pm_pic', 'finance'], true);
+
+        abort_unless($isOwner || $isAuthorizedRole, 403, 'Anda tidak berhak mengakses dokumen ini.');
+        abort_if(! $reimbursement->payment_proof_path, 404, 'Bukti pembayaran belum diunggah.');
+
+        return Storage::disk('local')->download(
+            $reimbursement->payment_proof_path,
+            $reimbursement->payment_proof_original_name
+        );
     }
 
     protected function guardStatus(Reimbursement $reimbursement, ReimbursementStatus $expected): void

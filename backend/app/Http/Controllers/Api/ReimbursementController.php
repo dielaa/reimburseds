@@ -93,7 +93,7 @@ class ReimbursementController extends Controller
 
         return response()->json([
             'data' => $reimbursement->load([
-                'items', 'documents', 'user', 'project',
+                'items', 'documents', 'user',
                 'approvals.approver', 'statusLogs.changedBy',
             ]),
         ]);

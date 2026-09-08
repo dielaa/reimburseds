@@ -23,6 +23,8 @@ class Reimbursement extends Model
         'rejection_reason',
         'submitted_at',
         'paid_at',
+        'payment_proof_path',
+        'payment_proof_original_name',
     ];
 
     protected function casts(): array
