@@ -417,30 +417,36 @@ export default function Ajukan() {
         <hr className="border-gray-100" />
 
         {/* Footer buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={submitting !== null}
-            className="w-full sm:w-auto h-11 px-6 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-60 order-2 sm:order-1"
-          >
-            {submitting === "draft" ? "Menyimpan..." : "Simpan Draf"}
-          </button>
-          <button
-            type="submit"
-            disabled={submitting !== null}
-            className="w-full sm:w-auto h-11 px-6 rounded-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-medium flex items-center justify-center gap-2 order-1 sm:order-2"
-          >
-            {submitting === "submit" ? "Mengirim..." : "Kirim Pengajuan"}{" "}
-            <FaPaperPlane size={13} />
-          </button>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          
+          {/* Tombol Kiri */}
           <button
             type="button"
             onClick={() => navigate("/dashboard")}
-            className="w-full sm:w-auto h-11 px-6 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 order-3"
+            className="w-full sm:w-auto h-11 px-6 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 order-3 sm:order-1"
           >
             Batal
           </button>
+
+          {/* Group Tombol Kanan */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={submitting !== null}
+              className="w-full sm:w-auto h-11 px-6 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-60 order-2 sm:order-1"
+            >
+              {submitting === "draft" ? "Menyimpan..." : "Simpan Draf"}
+            </button>
+            <button
+              type="submit"
+              disabled={submitting !== null}
+              className="w-full sm:w-auto h-11 px-6 rounded-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-medium flex items-center justify-center gap-2 order-1 sm:order-2"
+            >
+              {submitting === "submit" ? "Mengirim..." : "Kirim Pengajuan"} <FaPaperPlane size={13} />
+            </button>
+          </div>
+          
         </div>
       </form>
     </DashboardLayout>

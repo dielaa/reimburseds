@@ -67,7 +67,7 @@ export default function PmDashboard() {
         dengan aturan perusahaan.
       </AlertBanner>
 
-      <h2 className="text-2xl font-bold text-slate-900 mb-1">Project Manager Dashboard</h2>
+      <h2 className="text-2xl font-bold text-slate-900 mb-1">Manager Dashboard</h2>
       <p className="text-gray-500 text-sm mb-6">Kelola dan review pengajuan reimburse dari tim proyek Anda.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
