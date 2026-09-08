@@ -18,6 +18,7 @@ class StoreReimbursementRequest extends FormRequest
             'date' => ['required', 'date'],
             'purpose' => ['required', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
+            'items.*.project' => ['nullable', 'string', 'max:255'],
             'items.*.category' => ['required', 'in:transportasi,akomodasi,konsumsi,perlengkapan,lainnya'],
             'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.amount' => ['required', 'numeric', 'min:1'],
