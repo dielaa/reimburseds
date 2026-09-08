@@ -65,7 +65,7 @@ class ReimbursementController extends Controller
 
         $reimbursement = Reimbursement::create([
             'user_id' => $user->id,
-            'project_id' => $data['project_id'] ?? null,
+            'project' => $data['project'] ?? null,
             'date' => $data['date'],
             'purpose' => $data['purpose'],
             'status' => ReimbursementStatus::DRAFT->value,
@@ -93,7 +93,7 @@ class ReimbursementController extends Controller
 
         return response()->json([
             'data' => $reimbursement->load([
-                'items', 'documents', 'user',
+                'items', 'documents', 'user', 'project',
                 'approvals.approver', 'statusLogs.changedBy',
             ]),
         ]);

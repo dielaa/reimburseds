@@ -14,7 +14,7 @@ class StoreReimbursementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['nullable', 'exists:projects,id'],
+            'project' => ['nullable', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'purpose' => ['required', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
