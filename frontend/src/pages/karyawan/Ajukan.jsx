@@ -30,7 +30,7 @@ export default function Ajukan() {
   const [form, setForm] = useState({
     nama: user?.name || "",
     divisi: user?.department || "",
-    project_id: "",
+    project: "",
     date: "",
     category: "",
     categoryOther: "",
