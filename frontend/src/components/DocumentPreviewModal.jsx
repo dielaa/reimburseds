@@ -12,7 +12,7 @@ function guessIsPdf(name = "", type = "") {
   return /\.pdf$/i.test(name);
 }
 
-export default function DocumentPreviewModal({ reimbursementId, doc, onClose }) {
+export default function DocumentPreviewModal({ reimbursementId, doc, onClose, isPaymentProof = false }) {
   const [url, setUrl] = useState(null);
   const [contentType, setContentType] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,8 +29,12 @@ export default function DocumentPreviewModal({ reimbursementId, doc, onClose }) 
       setError("");
       setUrl(null);
 
+      const endpoint = isPaymentProof
+        ? `/reimbursements/${reimbursementId}/payment-proof/download`
+        : `/reimbursements/${reimbursementId}/documents/${doc.id}/download`;
+
       api
-        .get(`/reimbursements/${reimbursementId}/documents/${doc.id}/download`, { responseType: "blob" })
+        .get(endpoint, { responseType: "blob" })
         .then((res) => {
           if (!active) return;
           const type = res.data.type || res.headers?.["content-type"] || "";
@@ -51,7 +55,7 @@ export default function DocumentPreviewModal({ reimbursementId, doc, onClose }) 
       clearTimeout(timer);
       if (objectUrl) window.URL.revokeObjectURL(objectUrl);
     };
-  }, [doc, reimbursementId]);
+  }, [doc, reimbursementId, isPaymentProof]);
 
   if (!doc) return null;
 

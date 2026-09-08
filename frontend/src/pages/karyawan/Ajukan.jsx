@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
@@ -9,16 +9,28 @@ import {
   FaFileAlt,
   FaPaperPlane,
   FaTrash,
+  FaPlus,
 } from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import AlertBanner from "../../components/AlertBanner";
 import api, {
   CATEGORY_LABELS,
   DOCUMENT_TYPE_LABELS,
+  formatCurrency,
   getStoredUser,
 } from "../../services/api";
 
 const MIN_DOCUMENTS = 1;
+
+function emptyItem() {
+  return {
+    project: "",
+    category: "",
+    categoryOther: "",
+    description: "",
+    amount: "",
+  };
+}
 
 export default function Ajukan() {
   const navigate = useNavigate();
@@ -30,16 +42,28 @@ export default function Ajukan() {
   const [form, setForm] = useState({
     nama: user?.name || "",
     divisi: user?.department || "",
-    project: "",
     date: "",
-    category: "",
-    categoryOther: "",
-    description: "",
-    amount: "",
+    purpose: "",
   });
+
+  const [items, setItems] = useState([emptyItem()]);
+
+  const grandTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const updateItem = (index, field, value) => {
+    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
+  };
+
+  const addItem = () => {
+    setItems((prev) => [...prev, emptyItem()]);
+  };
+
+  const removeItem = (index) => {
+    setItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
   };
 
   const handleFilesChange = (e) => {
@@ -62,25 +86,23 @@ export default function Ajukan() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const buildPayload = () => {
-    const isOther = form.category === "lainnya" && form.categoryOther.trim();
-    const itemDescription = isOther
-      ? `[Lainnya: ${form.categoryOther.trim()}] ${form.description}`
-      : form.description;
+  const buildPayload = () => ({
+    date: form.date,
+    purpose: form.purpose,
+    items: items.map((item) => {
+      const isOther = item.category === "lainnya" && item.categoryOther.trim();
+      const itemDescription = isOther
+        ? `[Lainnya: ${item.categoryOther.trim()}] ${item.description}`
+        : item.description;
 
-    return {
-      project: form.project.trim() || null,
-      date: form.date,
-      purpose: form.description,
-      items: [
-        {
-          category: form.category,
-          description: itemDescription,
-          amount: Number(form.amount),
-        },
-      ],
-    };
-  };
+      return {
+        project: item.project.trim() || null,
+        category: item.category,
+        description: itemDescription,
+        amount: Number(item.amount),
+      };
+    }),
+  });
 
   const createReimbursement = async () => {
     const res = await api.post("/reimbursements", buildPayload());
@@ -100,28 +122,35 @@ export default function Ajukan() {
 
   const validateBase = () => {
     if (!form.nama || !form.divisi) {
-      Swal.fire(
-        "Data belum lengkap",
-        "Mohon lengkapi nama dan divisi.",
-        "warning",
-      );
+      Swal.fire("Data belum lengkap", "Mohon lengkapi nama dan divisi.", "warning");
       return false;
     }
-    if (!form.date || !form.category || !form.description || !form.amount) {
-      Swal.fire(
-        "Data belum lengkap",
-        "Mohon lengkapi tanggal, kategori, deskripsi, dan nominal.",
-        "warning",
-      );
+    if (!form.date || !form.purpose) {
+      Swal.fire("Data belum lengkap", "Mohon lengkapi tanggal dan tujuan/keperluan pengajuan.", "warning");
       return false;
     }
-    if (form.category === "lainnya" && !form.categoryOther.trim()) {
-      Swal.fire(
-        "Data belum lengkap",
-        "Mohon sebutkan kategori lainnya.",
-        "warning",
-      );
+    if (items.length === 0) {
+      Swal.fire("Data belum lengkap", "Mohon tambahkan minimal 1 item biaya.", "warning");
       return false;
+    }
+    for (let i = 0; i < items.length; i += 1) {
+      const it = items[i];
+      if (!it.category || !it.description || !it.amount) {
+        Swal.fire(
+          "Data belum lengkap",
+          `Mohon lengkapi kategori, nama item, dan total pada item ke-${i + 1}.`,
+          "warning",
+        );
+        return false;
+      }
+      if (it.category === "lainnya" && !it.categoryOther.trim()) {
+        Swal.fire("Data belum lengkap", `Mohon sebutkan kategori lainnya pada item ke-${i + 1}.`, "warning");
+        return false;
+      }
+      if (Number(it.amount) <= 0) {
+        Swal.fire("Data belum lengkap", `Total pada item ke-${i + 1} harus lebih dari 0.`, "warning");
+        return false;
+      }
     }
     return true;
   };
@@ -131,18 +160,10 @@ export default function Ajukan() {
     setSubmitting("draft");
     try {
       await createReimbursement();
-      await Swal.fire(
-        "Draft tersimpan",
-        "Pengajuan berhasil disimpan sebagai draft.",
-        "success",
-      );
+      await Swal.fire("Draft tersimpan", "Pengajuan berhasil disimpan sebagai draft.", "success");
       navigate("/riwayat");
     } catch (err) {
-      Swal.fire(
-        "Gagal",
-        err.response?.data?.message || "Gagal menyimpan draft.",
-        "error",
-      );
+      Swal.fire("Gagal", err.response?.data?.message || "Gagal menyimpan draft.", "error");
     } finally {
       setSubmitting(null);
     }
@@ -166,18 +187,11 @@ export default function Ajukan() {
       const res = await api.post(`/reimbursements/${reimbursement.id}/submit`);
       const warnings = res.data.warnings;
 
-      if (warnings && warnings.length > 0) {
-        await Swal.fire(
-          "Pengajuan terkirim",
-          `Perhatian: ${warnings.join(" ")}`,
-          "warning",
-        );
+      if (warnings && Object.keys(warnings).length > 0) {
+        const warningText = Object.values(warnings).flat().join(" ");
+        await Swal.fire("Pengajuan terkirim", `Perhatian: ${warningText}`, "warning");
       } else {
-        await Swal.fire(
-          "Berhasil",
-          "Pengajuan berhasil dikirim dan menunggu approval.",
-          "success",
-        );
+        await Swal.fire("Berhasil", "Pengajuan berhasil dikirim dan menunggu approval.", "success");
       }
       navigate("/riwayat");
     } catch (err) {
@@ -205,17 +219,15 @@ export default function Ajukan() {
       <AlertBanner>
         <span className="font-semibold">Perhatian!</span> Batas pengajuan H-3
         sebelum tanggal cair (15 & 30). Minimal {MIN_DOCUMENTS} bukti transaksi
-        wajib diunggah.
+        wajib diunggah. Anda dapat menambahkan beberapa project dan item
+        sekaligus dalam satu pengajuan.
       </AlertBanner>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-xl border border-gray-200 p-8 space-y-8"
-      >
-        {/* Data Diri & Proyek */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-8 space-y-8">
+        {/* Data Diri */}
         <section>
           <h3 className="flex items-center gap-2 text-slate-900 font-semibold mb-5">
-            <FaUser className="text-gray-400" /> Data Diri & Proyek
+            <FaUser className="text-gray-400" /> Data Diri & Keperluan
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -251,91 +263,131 @@ export default function Ajukan() {
                 required
               />
             </Field>
-            <Field label="Nama Project">
-              <input
-                type="text"
-                name="project"
-                value={form.project}
-                onChange={handleChange}
-                className="input"
-                placeholder="Nama project"
-              />
-            </Field>
           </div>
 
           <div className="mt-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kategori <span className="text-red-500">*</span>
-            </label>
-            <div className="flex flex-wrap gap-6">
-              {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                <label
-                  key={value}
-                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="category"
-                    value={value}
-                    checked={form.category === value}
-                    onChange={handleChange}
-                    className="accent-orange-500"
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-            {form.category === "lainnya" && (
-              <div className="mt-3">
-                <input
-                  type="text"
-                  name="categoryOther"
-                  value={form.categoryOther}
-                  onChange={handleChange}
-                  className="input"
-                  placeholder="Sebutkan kategori lainnya"
-                  required
-                />
-              </div>
-            )}
+            <Field label="Tujuan / Keperluan Pengajuan" required>
+              <textarea
+                name="purpose"
+                value={form.purpose}
+                onChange={handleChange}
+                rows={2}
+                className="input resize-none"
+                placeholder="Jelaskan secara umum tujuan/keperluan pengajuan reimbursement ini..."
+                required
+              />
+            </Field>
           </div>
         </section>
 
         <hr className="border-gray-100" />
 
-        {/* Rincian Biaya */}
+        {/* Rincian Biaya - multi project & item */}
         <section>
-          <h3 className="flex items-center gap-2 text-slate-900 font-semibold mb-5">
-            <FaWallet className="text-gray-400" /> Rincian Biaya
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field
-              label="Deskripsi Pengeluaran"
-              required
-              className="md:col-span-2"
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="flex items-center gap-2 text-slate-900 font-semibold">
+              <FaWallet className="text-gray-400" /> Rincian Biaya
+            </h3>
+            <button
+              type="button"
+              onClick={addItem}
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-full border border-orange-300 text-orange-600 text-xs font-medium hover:bg-orange-50"
             >
-              <input
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className="input"
-                placeholder="Jelaskan secara rinci pengeluaran ini..."
-                required
-              />
-            </Field>
-            <Field label="Total Nominal (Rp)" required>
-              <input
-                type="number"
-                name="amount"
-                value={form.amount}
-                onChange={handleChange}
-                min="0"
-                className="input"
-                placeholder="Rp 0"
-                required
-              />
-            </Field>
+              <FaPlus size={11} /> Tambah Item
+            </button>
+          </div>
+
+          <div className="space-y-5">
+            {items.map((item, idx) => (
+              <div key={idx} className="border border-gray-200 rounded-lg p-5 relative bg-gray-50/50">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-semibold text-slate-700">Item #{idx + 1}</p>
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeItem(idx)}
+                      className="text-red-400 hover:text-red-600"
+                      title="Hapus item ini"
+                    >
+                      <FaTrash size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <Field label="Nama Project">
+                    <input
+                      type="text"
+                      value={item.project}
+                      onChange={(e) => updateItem(idx, "project", e.target.value)}
+                      className="input"
+                      placeholder="Nama project (opsional)"
+                    />
+                  </Field>
+                  <Field label="Nama Item / Deskripsi Pengeluaran" required>
+                    <input
+                      value={item.description}
+                      onChange={(e) => updateItem(idx, "description", e.target.value)}
+                      className="input"
+                      placeholder="Contoh: Tiket kereta Jakarta-Bandung"
+                      required
+                    />
+                  </Field>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kategori <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-6">
+                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`category-${idx}`}
+                          value={value}
+                          checked={item.category === value}
+                          onChange={(e) => updateItem(idx, "category", e.target.value)}
+                          className="accent-orange-500"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                  {item.category === "lainnya" && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={item.categoryOther}
+                        onChange={(e) => updateItem(idx, "categoryOther", e.target.value)}
+                        className="input"
+                        placeholder="Sebutkan kategori lainnya"
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+                  <Field label="Total Item (Rp)" required>
+                    <input
+                      type="number"
+                      value={item.amount}
+                      onChange={(e) => updateItem(idx, "amount", e.target.value)}
+                      min="0"
+                      className="input"
+                      placeholder="Rp 0"
+                      required
+                    />
+                  </Field>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between mt-5 bg-orange-50 border border-orange-100 rounded-lg px-5 py-4">
+            <p className="text-sm font-semibold text-slate-700">Total Keseluruhan</p>
+            <p className="text-xl font-bold text-orange-600">{formatCurrency(grandTotal)}</p>
           </div>
         </section>
 
@@ -418,7 +470,7 @@ export default function Ajukan() {
 
         {/* Footer buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          
+
           {/* Tombol Kiri */}
           <button
             type="button"
@@ -446,7 +498,7 @@ export default function Ajukan() {
               {submitting === "submit" ? "Mengirim..." : "Kirim Pengajuan"} <FaPaperPlane size={13} />
             </button>
           </div>
-          
+
         </div>
       </form>
     </DashboardLayout>

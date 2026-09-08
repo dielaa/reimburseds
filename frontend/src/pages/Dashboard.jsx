@@ -91,14 +91,14 @@ export default function Dashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-t border-b border-gray-100 text-gray-500 text-left">
-                <th className="py-3 px-6 font-medium">No</th>
-                <th className="py-3 px-2 font-medium">Tanggal</th>
-                <th className="py-3 px-2 font-medium">Project</th>
-                <th className="py-3 px-2 font-medium">Deskripsi</th>
-                <th className="py-3 px-2 font-medium text-right">Nominal</th>
-                <th className="py-3 px-2 font-medium">Status</th>
-                <th className="py-3 px-6 font-medium text-right">Aksi</th>
+              <tr className="bg-gray-50 text-gray-500 text-left">
+                <th className="py-3 px-6 font-medium text-center">No</th>
+                <th className="py-3 px-4 font-medium">Tanggal</th>
+                <th className="py-3 px-4 font-medium">Project</th>
+                <th className="py-3 px-4 font-medium">Deskripsi</th>
+                <th className="py-3 px-4 font-medium text-center">Nominal</th>
+                <th className="py-3 px-4 font-medium text-center">Status</th>
+                <th className="py-3 px-6 font-medium text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>

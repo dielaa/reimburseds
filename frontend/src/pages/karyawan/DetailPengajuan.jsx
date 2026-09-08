@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { FaArrowLeft, FaInfoCircle, FaPaperclip, FaFileAlt, FaEye, FaListUl } from "react-icons/fa";
+import { FaArrowLeft, FaInfoCircle, FaPaperclip, FaFileAlt, FaEye, FaListUl, FaImage } from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import StatusBadge from "../../components/StatusBadge";
 import ApprovalTimeline from "../../components/ApprovalTimeline";
@@ -18,6 +18,7 @@ export default function DetailPengajuan() {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [previewIsPaymentProof, setPreviewIsPaymentProof] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -105,7 +106,7 @@ export default function DetailPengajuan() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Project</p>
-                <p className="font-semibold text-slate-900">{data.project?.name || "-"}</p>
+                <p className="font-semibold text-slate-900">{data.project || "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Nama Pemohon</p>
@@ -128,7 +129,7 @@ export default function DetailPengajuan() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
-              <FaListUl className="text-gray-400" /> Rincian Biaya
+              <FaListUl className="text-gray-400" /> Rincian Biaya ({(data.items || []).length} item)
             </h3>
             <hr className="border-gray-100 mb-4" />
             <div className="space-y-3">
@@ -136,14 +137,23 @@ export default function DetailPengajuan() {
                 <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-slate-900">{item.description}</p>
-                    <p className="text-xs text-gray-400">{CATEGORY_LABELS[item.category] || item.category}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.project ? `${item.project} · ` : ""}
+                      {CATEGORY_LABELS[item.category] || item.category}
+                    </p>
                   </div>
                   <p className="text-sm font-semibold text-slate-900 whitespace-nowrap">
                     {formatCurrency(item.amount)}
                   </p>
                 </div>
               ))}
-              {(data.items || []).length === 0 && <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>}
+              {(data.items || []).length === 0 && (
+                <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm font-semibold text-slate-900">Total Keseluruhan</p>
+              <p className="text-base font-bold text-slate-900">{formatCurrency(data.total_amount)}</p>
             </div>
           </div>
 
@@ -166,7 +176,10 @@ export default function DetailPengajuan() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setPreviewDoc(doc)}
+                    onClick={() => {
+                      setPreviewIsPaymentProof(false);
+                      setPreviewDoc(doc);
+                    }}
                     className="text-gray-400 hover:text-gray-600 shrink-0"
                     title="Lihat dokumen"
                   >
@@ -179,6 +192,38 @@ export default function DetailPengajuan() {
               )}
             </div>
           </div>
+
+          {data.payment_proof_original_name && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
+                <FaImage className="text-gray-400" /> Bukti Pembayaran dari Finance
+              </h3>
+              <hr className="border-gray-100 mb-4" />
+              <div className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FaFileAlt className="text-teal-500 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{data.payment_proof_original_name}</p>
+                    <p className="text-xs text-gray-400">Bukti transfer pembayaran reimbursement Anda</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setPreviewIsPaymentProof(true);
+                    setPreviewDoc({
+                      id: "payment-proof",
+                      original_name: data.payment_proof_original_name,
+                      document_type: "bukti_pembayaran",
+                    });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 shrink-0"
+                  title="Lihat bukti pembayaran"
+                >
+                  <FaEye />
+                </button>
+              </div>
+            </div>
+          )}
 
           {user?.role === "karyawan" && isOwner && status === "draft" && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -220,7 +265,12 @@ export default function DetailPengajuan() {
         <ApprovalTimeline data={data} />
       </div>
 
-      <DocumentPreviewModal reimbursementId={data.id} doc={previewDoc} onClose={() => setPreviewDoc(null)} />
+      <DocumentPreviewModal
+        reimbursementId={data.id}
+        doc={previewDoc}
+        isPaymentProof={previewIsPaymentProof}
+        onClose={() => setPreviewDoc(null)}
+      />
     </DashboardLayout>
   );
 }

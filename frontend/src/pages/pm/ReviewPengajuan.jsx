@@ -140,7 +140,7 @@ export default function ReviewPengajuan() {
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Project</p>
-                <p className="font-semibold text-slate-900">{data.project?.name || "-"}</p>
+                <p className="font-semibold text-slate-900">{data.project || "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Email</p>
@@ -158,9 +158,13 @@ export default function ReviewPengajuan() {
 
             {(data.items || []).map((item, idx) => (
               <div key={item.id} className={idx > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""}>
-                <p className="text-xs text-gray-400 mb-1">Kategori</p>
-                <p className="font-medium text-slate-900 mb-3">{CATEGORY_LABELS[item.category] || item.category}</p>
-                <p className="text-xs text-gray-400 mb-1">Deskripsi Pengeluaran</p>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-gray-400">
+                    {item.project ? `${item.project} · ` : ""}
+                    {CATEGORY_LABELS[item.category] || item.category}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">{formatCurrency(item.amount)}</p>
+                </div>
                 <p className="text-sm text-slate-700">{item.description}</p>
               </div>
             ))}

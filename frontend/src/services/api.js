@@ -88,6 +88,7 @@ export const DOCUMENT_TYPE_LABELS = {
   invoice: "Invoice",
   form_tanpa_nota: "Form Tanpa Nota",
   lainnya: "Lainnya",
+  bukti_pembayaran: "Bukti Pembayaran",
 };
 
 export function formatCurrency(value) {

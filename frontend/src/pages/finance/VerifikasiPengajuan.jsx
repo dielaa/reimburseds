@@ -9,6 +9,9 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaHourglassHalf,
+  FaCloudUploadAlt,
+  FaImage,
+  FaReceipt,
 } from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import ApprovalTimeline from "../../components/ApprovalTimeline";
@@ -39,6 +42,8 @@ export default function VerifikasiPengajuan() {
   const [actionLoading, setActionLoading] = useState(false);
   const [note, setNote] = useState("");
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [previewIsPaymentProof, setPreviewIsPaymentProof] = useState(false);
+  const [proofFile, setProofFile] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -61,9 +66,19 @@ export default function VerifikasiPengajuan() {
     if (!stage) return;
     setActionLoading(true);
     try {
-      await api.post(`/reimbursements/${id}/${stage.action}`, { note: note || undefined });
+      if (stage.action === "pay") {
+        const fd = new FormData();
+        if (note) fd.append("note", note);
+        if (proofFile) fd.append("proof", proofFile);
+        await api.post(`/reimbursements/${id}/pay`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.post(`/reimbursements/${id}/${stage.action}`, { note: note || undefined });
+      }
       await Swal.fire("Berhasil", "Aksi berhasil diproses.", "success");
       setNote("");
+      setProofFile(null);
       load();
     } catch (err) {
       const errors = err.response?.data?.errors;
@@ -162,6 +177,35 @@ export default function VerifikasiPengajuan() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
+              <FaReceipt className="text-gray-400" /> Rincian Biaya ({(data.items || []).length} item)
+            </h3>
+            <div className="space-y-3">
+              {(data.items || []).map((item) => (
+                <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{item.description}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.project ? `${item.project} · ` : ""}
+                      {CATEGORY_LABELS[item.category] || item.category}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900 whitespace-nowrap">
+                    {formatCurrency(item.amount)}
+                  </p>
+                </div>
+              ))}
+              {(data.items || []).length === 0 && (
+                <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm font-semibold text-slate-900">Total Keseluruhan</p>
+              <p className="text-base font-bold text-green-600">{formatCurrency(data.total_amount)}</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
               <FaPaperclip className="text-gray-400" /> Bukti Lampiran ({(data.documents || []).length})
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -173,7 +217,10 @@ export default function VerifikasiPengajuan() {
                   <FaFileAlt className="text-gray-400" size={28} />
                   <p className="text-sm font-semibold text-slate-900 text-center break-all">{doc.original_name}</p>
                   <button
-                    onClick={() => setPreviewDoc(doc)}
+                    onClick={() => {
+                      setPreviewIsPaymentProof(false);
+                      setPreviewDoc(doc);
+                    }}
                     className="mt-1 inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-300 text-xs font-medium text-slate-700 hover:bg-white"
                   >
                     <FaEye size={12} /> Lihat / Unduh Bukti
@@ -185,6 +232,33 @@ export default function VerifikasiPengajuan() {
               )}
             </div>
           </div>
+
+          {data.payment_proof_original_name && (
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
+                <FaImage className="text-gray-400" /> Bukti Pembayaran
+              </h3>
+              <div className="border-2 border-dashed border-gray-200 rounded-lg py-8 px-4 flex flex-col items-center gap-2 bg-teal-50/30 max-w-sm">
+                <FaFileAlt className="text-gray-400" size={28} />
+                <p className="text-sm font-semibold text-slate-900 text-center break-all">
+                  {data.payment_proof_original_name}
+                </p>
+                <button
+                  onClick={() => {
+                    setPreviewIsPaymentProof(true);
+                    setPreviewDoc({
+                      id: "payment-proof",
+                      original_name: data.payment_proof_original_name,
+                      document_type: "bukti_pembayaran",
+                    });
+                  }}
+                  className="mt-1 inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-300 text-xs font-medium text-slate-700 hover:bg-white"
+                >
+                  <FaEye size={12} /> Lihat / Unduh Bukti
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -192,6 +266,35 @@ export default function VerifikasiPengajuan() {
 
           {stage && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
+              {stage.action === "pay" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Foto/Bukti Transfer Pembayaran (Opsional)
+                  </label>
+                  <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg py-6 cursor-pointer hover:bg-gray-50 transition">
+                    <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
+                      <FaCloudUploadAlt size={18} />
+                    </div>
+                    <p className="text-xs text-gray-600">Klik untuk mengunggah foto bukti transfer</p>
+                    <p className="text-xs text-gray-400">Format: PDF, JPG, PNG (Maks. 5MB)</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  {proofFile && (
+                    <div className="mt-2 flex items-center gap-2 bg-indigo-50 rounded-md px-3 py-2 text-xs text-slate-700">
+                      <FaFileAlt className="text-indigo-400 shrink-0" />
+                      <span className="truncate">
+                        {proofFile.name} ({(proofFile.size / 1024 / 1024).toFixed(1)} MB)
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <label className="block text-sm font-medium text-gray-700 mb-2">Catatan Finance (Opsional)</label>
               <textarea
                 value={note}
@@ -223,7 +326,12 @@ export default function VerifikasiPengajuan() {
         </div>
       </div>
 
-      <DocumentPreviewModal reimbursementId={data.id} doc={previewDoc} onClose={() => setPreviewDoc(null)} />
+      <DocumentPreviewModal
+        reimbursementId={data.id}
+        doc={previewDoc}
+        isPaymentProof={previewIsPaymentProof}
+        onClose={() => setPreviewDoc(null)}
+      />
     </DashboardLayout>
   );
 }
