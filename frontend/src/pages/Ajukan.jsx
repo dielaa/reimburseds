@@ -233,7 +233,7 @@ export default function Ajukan() {
                 value={form.description}
                 onChange={handleChange}
                 className="input"
-                placeholder="Jelaskan secara rinci pengeluaran ini..."
+                placeholder="Tujuan/Pengeluaran"
                 required
               />
             </Field>

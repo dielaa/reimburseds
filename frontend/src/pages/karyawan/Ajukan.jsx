@@ -273,7 +273,7 @@ export default function Ajukan() {
                 onChange={handleChange}
                 rows={2}
                 className="input resize-none"
-                placeholder="Jelaskan secara umum tujuan/keperluan pengajuan reimbursement ini..."
+                placeholder="Tujuan/Pengeluaran"
                 required
               />
             </Field>
@@ -301,7 +301,7 @@ export default function Ajukan() {
             {items.map((item, idx) => (
               <div key={idx} className="border border-gray-200 rounded-lg p-5 relative bg-gray-50/50">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm font-semibold text-slate-700">Item #{idx + 1}</p>
+                  <p className="text-sm font-semibold text-slate-700">Item {idx + 1}</p>
                   {items.length > 1 && (
                     <button
                       type="button"
@@ -321,7 +321,7 @@ export default function Ajukan() {
                       value={item.project}
                       onChange={(e) => updateItem(idx, "project", e.target.value)}
                       className="input"
-                      placeholder="Nama project (opsional)"
+                      placeholder="Nama project"
                     />
                   </Field>
                   <Field label="Nama Item / Deskripsi Pengeluaran" required>
@@ -329,7 +329,7 @@ export default function Ajukan() {
                       value={item.description}
                       onChange={(e) => updateItem(idx, "description", e.target.value)}
                       className="input"
-                      placeholder="Contoh: Tiket kereta Jakarta-Bandung"
+                      placeholder="Nama item"
                       required
                     />
                   </Field>
