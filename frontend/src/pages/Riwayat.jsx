@@ -120,7 +120,7 @@ export default function Riwayat() {
                   <tr key={row.id} className="border-t border-gray-100">
                     <td className="py-4 px-6">{(page - 1) * 15 + i + 1}</td>
                     <td className="py-4 px-2 whitespace-nowrap">{formatDate(row.date)}</td>
-                    <td className="py-4 px-2 font-semibold text-slate-900">{row.project?.name || "-"}</td>
+                    <td className="py-4 px-2 font-semibold text-slate-900">{row.project || "-"}</td>
                     <td className="py-4 px-2 text-gray-600 max-w-xs truncate">{row.purpose}</td>
                     <td className="py-4 px-2 text-right font-medium whitespace-nowrap">
                       {formatCurrency(row.total_amount)}

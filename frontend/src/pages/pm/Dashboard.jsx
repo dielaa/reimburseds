@@ -128,7 +128,7 @@ export default function PmDashboard() {
                     </td>
                     <td className="py-4 px-2">
                       <span className="inline-block px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
-                        {row.project?.name || "-"}
+                        {row.project || "-"}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-right font-medium whitespace-nowrap">

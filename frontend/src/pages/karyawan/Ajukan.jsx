@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
@@ -12,7 +12,11 @@ import {
 } from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import AlertBanner from "../../components/AlertBanner";
-import api, { CATEGORY_LABELS, DOCUMENT_TYPE_LABELS, getStoredUser } from "../../services/api";
+import api, {
+  CATEGORY_LABELS,
+  DOCUMENT_TYPE_LABELS,
+  getStoredUser,
+} from "../../services/api";
 
 const MIN_DOCUMENTS = 1;
 
@@ -26,7 +30,7 @@ export default function Ajukan() {
   const [form, setForm] = useState({
     nama: user?.name || "",
     divisi: user?.department || "",
-    project: "",
+    project_id: "",
     date: "",
     category: "",
     categoryOther: "",
@@ -41,12 +45,17 @@ export default function Ajukan() {
   const handleFilesChange = (e) => {
     const picked = Array.from(e.target.files || []);
     if (picked.length === 0) return;
-    setFiles((prev) => [...prev, ...picked.map((file) => ({ file, document_type: "nota" }))]);
+    setFiles((prev) => [
+      ...prev,
+      ...picked.map((file) => ({ file, document_type: "nota" })),
+    ]);
     e.target.value = "";
   };
 
   const updateFileDocType = (index, value) => {
-    setFiles((prev) => prev.map((f, i) => (i === index ? { ...f, document_type: value } : f)));
+    setFiles((prev) =>
+      prev.map((f, i) => (i === index ? { ...f, document_type: value } : f)),
+    );
   };
 
   const removeFile = (index) => {
@@ -91,15 +100,27 @@ export default function Ajukan() {
 
   const validateBase = () => {
     if (!form.nama || !form.divisi) {
-      Swal.fire("Data belum lengkap", "Mohon lengkapi nama dan divisi.", "warning");
+      Swal.fire(
+        "Data belum lengkap",
+        "Mohon lengkapi nama dan divisi.",
+        "warning",
+      );
       return false;
     }
     if (!form.date || !form.category || !form.description || !form.amount) {
-      Swal.fire("Data belum lengkap", "Mohon lengkapi tanggal, kategori, deskripsi, dan nominal.", "warning");
+      Swal.fire(
+        "Data belum lengkap",
+        "Mohon lengkapi tanggal, kategori, deskripsi, dan nominal.",
+        "warning",
+      );
       return false;
     }
     if (form.category === "lainnya" && !form.categoryOther.trim()) {
-      Swal.fire("Data belum lengkap", "Mohon sebutkan kategori lainnya.", "warning");
+      Swal.fire(
+        "Data belum lengkap",
+        "Mohon sebutkan kategori lainnya.",
+        "warning",
+      );
       return false;
     }
     return true;
@@ -110,10 +131,18 @@ export default function Ajukan() {
     setSubmitting("draft");
     try {
       await createReimbursement();
-      await Swal.fire("Draft tersimpan", "Pengajuan berhasil disimpan sebagai draft.", "success");
+      await Swal.fire(
+        "Draft tersimpan",
+        "Pengajuan berhasil disimpan sebagai draft.",
+        "success",
+      );
       navigate("/riwayat");
     } catch (err) {
-      Swal.fire("Gagal", err.response?.data?.message || "Gagal menyimpan draft.", "error");
+      Swal.fire(
+        "Gagal",
+        err.response?.data?.message || "Gagal menyimpan draft.",
+        "error",
+      );
     } finally {
       setSubmitting(null);
     }
@@ -126,7 +155,7 @@ export default function Ajukan() {
       Swal.fire(
         "Bukti transaksi kurang",
         `Mohon unggah minimal ${MIN_DOCUMENTS} bukti transaksi sebelum mengirim pengajuan.`,
-        "warning"
+        "warning",
       );
       return;
     }
@@ -138,9 +167,17 @@ export default function Ajukan() {
       const warnings = res.data.warnings;
 
       if (warnings && warnings.length > 0) {
-        await Swal.fire("Pengajuan terkirim", `Perhatian: ${warnings.join(" ")}`, "warning");
+        await Swal.fire(
+          "Pengajuan terkirim",
+          `Perhatian: ${warnings.join(" ")}`,
+          "warning",
+        );
       } else {
-        await Swal.fire("Berhasil", "Pengajuan berhasil dikirim dan menunggu approval.", "success");
+        await Swal.fire(
+          "Berhasil",
+          "Pengajuan berhasil dikirim dan menunggu approval.",
+          "success",
+        );
       }
       navigate("/riwayat");
     } catch (err) {
@@ -157,18 +194,24 @@ export default function Ajukan() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Formulir Pengajuan Reimbursement</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          Formulir Pengajuan Reimbursement
+        </h2>
         <p className="text-gray-500 text-sm mt-1">
           Lengkapi data berikut untuk memproses permintaan reimbursement Anda.
         </p>
       </div>
 
       <AlertBanner>
-        <span className="font-semibold">Perhatian!</span> Batas pengajuan H-3 sebelum tanggal
-        cair (15 & 30). Minimal {MIN_DOCUMENTS} bukti transaksi wajib diunggah.
+        <span className="font-semibold">Perhatian!</span> Batas pengajuan H-3
+        sebelum tanggal cair (15 & 30). Minimal {MIN_DOCUMENTS} bukti transaksi
+        wajib diunggah.
       </AlertBanner>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-8 space-y-8">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-xl border border-gray-200 p-8 space-y-8"
+      >
         {/* Data Diri & Proyek */}
         <section>
           <h3 className="flex items-center gap-2 text-slate-900 font-semibold mb-5">
@@ -215,7 +258,7 @@ export default function Ajukan() {
                 value={form.project}
                 onChange={handleChange}
                 className="input"
-                placeholder="Nama project (opsional)"
+                placeholder="Nama project"
               />
             </Field>
           </div>
@@ -226,7 +269,10 @@ export default function Ajukan() {
             </label>
             <div className="flex flex-wrap gap-6">
               {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                <label key={value} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <label
+                  key={value}
+                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                >
                   <input
                     type="radio"
                     name="category"
@@ -264,7 +310,11 @@ export default function Ajukan() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field label="Deskripsi Pengeluaran" required className="md:col-span-2">
+            <Field
+              label="Deskripsi Pengeluaran"
+              required
+              className="md:col-span-2"
+            >
               <input
                 name="description"
                 value={form.description}
@@ -308,8 +358,12 @@ export default function Ajukan() {
             <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
               <FaCloudUploadAlt size={20} />
             </div>
-            <p className="text-sm text-gray-600">Klik untuk mengunggah atau seret file ke sini</p>
-            <p className="text-xs text-gray-400">Format didukung: PDF, JPG, PNG (Maks. 5MB per file)</p>
+            <p className="text-sm text-gray-600">
+              Klik untuk mengunggah atau seret file ke sini
+            </p>
+            <p className="text-xs text-gray-400">
+              Format didukung: PDF, JPG, PNG (Maks. 5MB per file)
+            </p>
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
@@ -329,7 +383,8 @@ export default function Ajukan() {
                   <FaFileAlt className="text-indigo-400 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate">
-                      {item.file.name} ({(item.file.size / 1024 / 1024).toFixed(1)} MB)
+                      {item.file.name} (
+                      {(item.file.size / 1024 / 1024).toFixed(1)} MB)
                     </p>
                   </div>
                   <select
@@ -337,11 +392,13 @@ export default function Ajukan() {
                     onChange={(e) => updateFileDocType(idx, e.target.value)}
                     className="h-9 px-2 rounded-md border border-gray-200 text-xs bg-white shrink-0"
                   >
-                    {Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
+                    {Object.entries(DOCUMENT_TYPE_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ),
+                    )}
                   </select>
                   <button
                     type="button"
@@ -374,7 +431,8 @@ export default function Ajukan() {
             disabled={submitting !== null}
             className="w-full sm:w-auto h-11 px-6 rounded-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-medium flex items-center justify-center gap-2 order-1 sm:order-2"
           >
-            {submitting === "submit" ? "Mengirim..." : "Kirim Pengajuan"} <FaPaperPlane size={13} />
+            {submitting === "submit" ? "Mengirim..." : "Kirim Pengajuan"}{" "}
+            <FaPaperPlane size={13} />
           </button>
           <button
             type="button"
