@@ -12,9 +12,15 @@ import {
   FaEdit,
   FaSave,
   FaTimes,
+  FaTelegramPlane,
 } from "react-icons/fa";
 import DashboardLayout from "../layouts/DashboardLayout";
-import api, { ROLE_LABELS, clearSession, getStoredUser, setSession } from "../services/api";
+import api, {
+  ROLE_LABELS,
+  clearSession,
+  getStoredUser,
+  setSession,
+} from "../services/api";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -23,6 +29,53 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", department: "" });
+  const [connectingTelegram, setConnectingTelegram] = useState(false);
+
+  const [checkingStatus, setCheckingStatus] = useState(false);
+
+  const refreshUser = async () => {
+    setCheckingStatus(true);
+    try {
+      const res = await api.get("/me");
+      const freshUser = res.data.user;
+      setUser(freshUser);
+      const token = localStorage.getItem("token");
+      if (token) setSession(token, freshUser);
+      Swal.fire({
+        title: freshUser.telegram_chat_id
+          ? "Sudah terhubung"
+          : "Belum terhubung",
+        icon: freshUser.telegram_chat_id ? "success" : "info",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch {
+      Swal.fire("Gagal", "Tidak bisa mengecek status.", "error");
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
+  const handleConnectTelegram = async () => {
+    setConnectingTelegram(true);
+    try {
+      const res = await api.post("/profile/telegram-link");
+      window.open(res.data.link, "_blank");
+      Swal.fire({
+        title: "Selesaikan di Telegram",
+        text: "Klik tombol START di chat Telegram yang baru terbuka, lalu kembali ke sini dan klik 'Cek Status'.",
+        icon: "info",
+      });
+    } catch (err) {
+      Swal.fire(
+        "Gagal",
+        "Tidak bisa membuat link Telegram. Coba lagi.",
+        "error",
+      );
+    } finally {
+      setConnectingTelegram(false);
+    }
+  };
 
   useEffect(() => {
     api
@@ -68,7 +121,11 @@ export default function Profile() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.department.trim()) {
-      Swal.fire("Data belum lengkap", "Nama dan Divisi tidak boleh kosong.", "warning");
+      Swal.fire(
+        "Data belum lengkap",
+        "Nama dan Divisi tidak boleh kosong.",
+        "warning",
+      );
       return;
     }
     setSaving(true);
@@ -111,7 +168,9 @@ export default function Profile() {
       </Link>
 
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Data Diri Karyawan</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          Data Diri Karyawan
+        </h2>
         {!loading && user && !editing && (
           <button
             onClick={startEditing}
@@ -140,20 +199,64 @@ export default function Profile() {
                   {user?.name}
                 </h3>
 
-                <p className="text-lg text-gray-500 mt-1">
-                  {user?.department}
-                </p>
+                <p className="text-lg text-gray-500 mt-1">{user?.department}</p>
 
-                <p className="text-sm text-gray-400 mt-1">
-                  {user?.email}
-                </p>
+                <p className="text-sm text-gray-400 mt-1">{user?.email}</p>
 
                 <span className="mt-4 px-5 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold tracking-wide">
-                  ● {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
+                  ●{" "}
+                  {(ROLE_LABELS[user?.role] || user?.role || "").toUpperCase()}
                 </span>
               </div>
 
               <hr className="border-gray-200 mb-8" />
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <FaTelegramPlane
+                    size={22}
+                    className={
+                      user?.telegram_chat_id ? "text-sky-500" : "text-gray-400"
+                    }
+                  />
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">
+                      NOTIFIKASI TELEGRAM
+                    </p>
+                    <p className="text-slate-900 font-semibold">
+                      {user?.telegram_chat_id ? "Terhubung" : "Belum terhubung"}
+                    </p>
+                  </div>
+                </div>
+
+                {user?.telegram_chat_id ? (
+                  <button
+                    onClick={refreshUser}
+                    disabled={checkingStatus}
+                    className="h-10 px-4 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 text-sm disabled:opacity-60"
+                  >
+                    {checkingStatus ? "Mengecek..." : "Cek Status"}
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleConnectTelegram}
+                      disabled={connectingTelegram}
+                      className="flex items-center gap-2 h-10 px-4 rounded-md bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm disabled:opacity-60"
+                    >
+                      <FaTelegramPlane size={13} />{" "}
+                      {connectingTelegram
+                        ? "Memproses..."
+                        : "Hubungkan Telegram"}
+                    </button>
+                    <button
+                      onClick={refreshUser}
+                      className="h-10 px-4 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 text-sm"
+                    >
+                      Cek Status
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {editing ? (
                 <form onSubmit={handleSave}>
@@ -174,9 +277,21 @@ export default function Profile() {
                       onChange={handleFormChange}
                       required
                     />
-                    <Field icon={FaEnvelope} label="Email Perusahaan" value={user?.email} />
-                    <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
-                    <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
+                    <Field
+                      icon={FaEnvelope}
+                      label="Email Perusahaan"
+                      value={user?.email}
+                    />
+                    <Field
+                      icon={FaIdBadge}
+                      label="ID Karyawan"
+                      value={`#${String(user?.id || "-").padStart(4, "0")}`}
+                    />
+                    <Field
+                      icon={FaBriefcase}
+                      label="Role"
+                      value={ROLE_LABELS[user?.role] || user?.role}
+                    />
                   </div>
 
                   <div className="flex justify-center gap-3">
@@ -193,18 +308,39 @@ export default function Profile() {
                       disabled={saving}
                       className="flex items-center gap-2 h-11 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium disabled:opacity-60"
                     >
-                      <FaSave size={14} /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                      <FaSave size={14} />{" "}
+                      {saving ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
                   </div>
                 </form>
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    <Field icon={FaUser} label="Nama Lengkap" value={user?.name} />
-                    <Field icon={FaBuilding} label="Divisi" value={user?.department} />
-                    <Field icon={FaEnvelope} label="Email Perusahaan" value={user?.email} />
-                    <Field icon={FaIdBadge} label="ID Karyawan" value={`#${String(user?.id || "-").padStart(4, "0")}`} />
-                    <Field icon={FaBriefcase} label="Role" value={ROLE_LABELS[user?.role] || user?.role} />
+                    <Field
+                      icon={FaUser}
+                      label="Nama Lengkap"
+                      value={user?.name}
+                    />
+                    <Field
+                      icon={FaBuilding}
+                      label="Divisi"
+                      value={user?.department}
+                    />
+                    <Field
+                      icon={FaEnvelope}
+                      label="Email Perusahaan"
+                      value={user?.email}
+                    />
+                    <Field
+                      icon={FaIdBadge}
+                      label="ID Karyawan"
+                      value={`#${String(user?.id || "-").padStart(4, "0")}`}
+                    />
+                    <Field
+                      icon={FaBriefcase}
+                      label="Role"
+                      value={ROLE_LABELS[user?.role] || user?.role}
+                    />
                   </div>
 
                   <div className="flex justify-center">
@@ -231,16 +367,30 @@ function Field({ icon: Icon, label, value }) {
       <p className="flex items-center gap-2 text-xs text-gray-400 mb-1">
         <Icon size={12} /> {label.toUpperCase()}
       </p>
-      <p className="text-slate-900 font-semibold text-xl mt-2">{value || "-"}</p>
+      <p className="text-slate-900 font-semibold text-xl mt-2">
+        {value || "-"}
+      </p>
     </div>
   );
 }
 
-function EditableField({ icon: Icon, label, name, value, onChange, type = "text", required }) {
+function EditableField({
+  icon: Icon,
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required,
+}) {
   return (
     <div className="bg-gray-50 rounded-md px-4 py-3">
-      <label htmlFor={name} className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-        <Icon size={12} /> {label.toUpperCase()} {required && <span className="text-red-500">*</span>}
+      <label
+        htmlFor={name}
+        className="flex items-center gap-2 text-xs text-gray-400 mb-1"
+      >
+        <Icon size={12} /> {label.toUpperCase()}{" "}
+        {required && <span className="text-red-500">*</span>}
       </label>
       <input
         id={name}
