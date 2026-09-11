@@ -9,9 +9,12 @@ use App\Http\Controllers\Api\ReimbursementController;
 use App\Http\Controllers\Api\ReimbursementDocumentController;
 use App\Http\Controllers\Api\ReimbursementItemController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\TelegramWebhookController;
 
 // ==== Public ====
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::post('/telegram/webhook', TelegramWebhookController::class);
 
 // ==== Authenticated (semua role) ====
 Route::middleware('auth.token')->group(function () {
@@ -19,6 +22,7 @@ Route::middleware('auth.token')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/telegram-link', [AuthController::class, 'telegramLink']);
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 

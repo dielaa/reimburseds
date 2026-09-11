@@ -8,9 +8,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RejectRequest;
 use App\Models\Reimbursement;
 use Illuminate\Http\Request;
+use App\Services\TelegramService;
+
 
 class ApprovalController extends Controller
 {
+
+    public function __construct(protected TelegramService $telegram)
+    {
+    }
+
     /**
      * FR-05: PM/PIC memeriksa detail & bukti transaksi lalu menyetujui pengajuan.
      */
@@ -31,6 +38,17 @@ class ApprovalController extends Controller
         $reimbursement->update(['status' => ReimbursementStatus::DISETUJUI->value]);
         $logMessage = 'Disetujui oleh Project Manager/PIC.' . ($note ? " Catatan: {$note}" : '');
         $reimbursement->logStatus(ReimbursementStatus::DISETUJUI, 'Disetujui oleh Project Manager/PIC.', $approver->id);
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyRole(
+            'finance',
+            "✅ <b>Pengajuan Disetujui PM/PIC</b>\n" .
+            "Karyawan: {$reimbursement->user->name}\n" .
+            "Total: Rp " . number_format($reimbursement->total_amount, 0, ',', '.') . "\n" .
+            "Menunggu verifikasi Finance.",
+            $detailUrl
+        );
 
         return response()->json([
             'message' => 'Pengajuan disetujui dan diteruskan ke Finance.',
@@ -61,6 +79,14 @@ class ApprovalController extends Controller
             'rejection_reason' => $reason,
         ]);
         $reimbursement->logStatus(ReimbursementStatus::DITOLAK, "Ditolak oleh PM/PIC: {$reason}", $approver->id);
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "❌ <b>Pengajuan Ditolak</b>\nAlasan: {$reason}",
+            $detailUrl
+        );
 
         return response()->json([
             'message' => 'Pengajuan ditolak.',

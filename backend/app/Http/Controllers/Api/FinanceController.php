@@ -8,9 +8,16 @@ use App\Http\Requests\RejectRequest;
 use App\Models\Reimbursement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\TelegramService;
 
 class FinanceController extends Controller
 {
+
+    public function __construct(protected TelegramService $telegram)
+    {
+
+    }
+
     /**
      * FR-07: Finance memverifikasi data, bukti transaksi, nominal, project/PID, dan approval.
      * Disetujui -> Verifikasi Finance
@@ -27,6 +34,14 @@ class FinanceController extends Controller
             $request->user()->id
         );
 
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "💰 Status pengajuan kamu berubah: <b>{$reimbursement->status->label()}</b>",
+            $detailUrl
+        );
+
         return response()->json([
             'message' => 'Pengajuan sedang diverifikasi.',
             'data' => $reimbursement->fresh('statusLogs'),
@@ -39,7 +54,7 @@ class FinanceController extends Controller
     public function reject(RejectRequest $request, Reimbursement $reimbursement)
     {
         abort_if(
-            ! in_array($reimbursement->status, [ReimbursementStatus::DISETUJUI, ReimbursementStatus::VERIFIKASI_FINANCE], true),
+            !in_array($reimbursement->status, [ReimbursementStatus::DISETUJUI, ReimbursementStatus::VERIFIKASI_FINANCE], true),
             422,
             'Pengajuan ini tidak dapat ditolak pada tahap saat ini.'
         );
@@ -53,6 +68,14 @@ class FinanceController extends Controller
             'rejection_reason' => $reason,
         ]);
         $reimbursement->logStatus(ReimbursementStatus::DITOLAK, "Ditolak oleh Finance: {$reason}", $finance->id);
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "❌ <b>Pengajuan Ditolak</b>\nAlasan: {$reason}",
+            $detailUrl
+        );
 
         return response()->json(['message' => 'Pengajuan ditolak oleh Finance.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
@@ -70,6 +93,14 @@ class FinanceController extends Controller
             ReimbursementStatus::DIPROSES,
             'Pengajuan masuk proses pembayaran.' . ($note ? " Catatan: {$note}" : ''),
             $request->user()->id
+        );
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "💰 Status pengajuan kamu berubah: <b>{$reimbursement->status->label()}</b>",
+            $detailUrl
         );
 
         return response()->json(['message' => 'Pengajuan diproses.', 'data' => $reimbursement->fresh('statusLogs')]);
@@ -115,6 +146,14 @@ class FinanceController extends Controller
             $request->user()->id
         );
 
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "💰 Status pengajuan kamu berubah: <b>{$reimbursement->status->label()}</b>",
+            $detailUrl
+        );
+
         return response()->json(['message' => 'Pembayaran reimbursement dicatat.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
 
@@ -133,6 +172,15 @@ class FinanceController extends Controller
             $request->user()->id
         );
 
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyUser(
+            $reimbursement->user,
+            "✅ Pengajuan kamu resmi <b>Selesai</b>.",
+            $detailUrl
+        );
+
+
         return response()->json(['message' => 'Reimbursement selesai.', 'data' => $reimbursement->fresh('statusLogs')]);
     }
 
@@ -147,7 +195,7 @@ class FinanceController extends Controller
         $isAuthorizedRole = in_array($user->role->value ?? $user->role, ['pm_pic', 'finance'], true);
 
         abort_unless($isOwner || $isAuthorizedRole, 403, 'Anda tidak berhak mengakses dokumen ini.');
-        abort_if(! $reimbursement->payment_proof_path, 404, 'Bukti pembayaran belum diunggah.');
+        abort_if(!$reimbursement->payment_proof_path, 404, 'Bukti pembayaran belum diunggah.');
 
         return Storage::disk('local')->download(
             $reimbursement->payment_proof_path,

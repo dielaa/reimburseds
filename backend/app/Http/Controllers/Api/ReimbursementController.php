@@ -11,11 +11,14 @@ use App\Models\Reimbursement;
 use App\Services\ReimbursementValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use App\Services\TelegramService;
 
 class ReimbursementController extends Controller
 {
-    public function __construct(protected ReimbursementValidationService $validationService)
-    {
+    public function __construct(
+        protected ReimbursementValidationService $validationService,
+        protected TelegramService $telegram
+    ) {
     }
 
     /**
@@ -177,6 +180,24 @@ class ReimbursementController extends Controller
 
         $reimbursement->logStatus(ReimbursementStatus::DIAJUKAN, 'Pengajuan dikirim oleh karyawan.', $user->id);
         $reimbursement->logStatus(ReimbursementStatus::MENUNGGU_APPROVAL, 'Menunggu approval Project Manager/PIC.', $user->id);
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        \Log::info('TELEGRAM SUBMIT: SEBELUM NOTIFY', [
+            'reimbursement_id' => $reimbursement->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->telegram->notifyRole(
+            'pm_pic',
+            "📥 <b>Pengajuan Baru</b>\n" .
+            "Karyawan: {$user->name}\n" .
+            "Tujuan: {$reimbursement->purpose}\n" .
+            "Total: Rp " . number_format($reimbursement->total_amount, 0, ',', '.') . "\n" .
+            "Menunggu approval kamu.",
+            $detailUrl
+        );
+        \Log::info('TELEGRAM SUBMIT: SETELAH NOTIFY');
 
         return response()->json([
             'message' => 'Pengajuan berhasil disubmit dan menunggu approval.',
