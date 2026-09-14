@@ -79,15 +79,15 @@ export default function PmDashboard() {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5">
           <h3 className="text-lg font-bold text-slate-900">Daftar Pengajuan Menunggu Persetujuan Saya</h3>
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nama pengaju..."
-              className="h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 w-56"
-            />
-          </div>
+                      <div className="relative w-full sm:w-auto">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari pengaju / project..."
+                className="h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 w-full sm:w-56"
+              />
+            </div>
         </div>
 
         <div className="overflow-x-auto">

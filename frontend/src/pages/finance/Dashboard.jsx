@@ -76,13 +76,13 @@ export default function FinanceDashboard() {
               <h3 className="text-lg font-bold text-slate-900">Daftar Pengajuan Siap Diverifikasi</h3>
               <p className="text-xs text-gray-400">Menunggu review dokumen (Nota & Kuitansi)</p>
             </div>
-            <div className="relative">
+                        <div className="relative w-full sm:w-auto">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari pengaju / project..."
-                className="h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 w-56"
+                className="h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 w-full sm:w-56"
               />
             </div>
           </div>

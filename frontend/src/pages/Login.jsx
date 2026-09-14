@@ -58,10 +58,10 @@ export default function Login() {
   };
 
   return (
-    <div className="w-screen min-h-screen bg-[#f4f5fb] flex items-center justify-center">
-      <span className="absolute top-6 left-6 text-gray-300 font-medium">Login</span>
+        <div className="w-full min-h-screen bg-[#f4f5fb] flex items-center justify-center px-4 py-10">
+      <span className="absolute top-6 left-6 text-gray-300 font-medium hidden sm:inline">Login</span>
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 p-10">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-10">
         {/* Logo */}
         <div className="flex flex-col items-center text-center mb-10">
           <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center shadow-sm mb-4 overflow-hidden">
