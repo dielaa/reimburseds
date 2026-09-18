@@ -7,12 +7,14 @@ import {
   FaUserCircle,
   FaSignOutAlt,
   FaTimes,
+  FaFileAlt,
 } from "react-icons/fa";
 import api, { clearSession, getStoredUser, ROLE_LABELS } from "../services/api";
 
 const menuItems = [
   { to: "/dashboard", label: "Dashboard", icon: FaThLarge },
   { to: "/ajukan", label: "Ajukan", icon: FaCheckCircle },
+  { to: "/draft", label: "Draft", icon: FaFileAlt, karyawanOnly: true },
   { to: "/riwayat", label: "Riwayat", icon: FaClock },
   { to: "/profile", label: "Profile", icon: FaUserCircle },
 ];
@@ -83,6 +85,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           <nav className="space-y-1">
             {menuItems
               .filter((item) => item.to !== "/ajukan" || user?.role === "karyawan")
+              .filter((item) => !item.karyawanOnly || user?.role === "karyawan")
               .map(({ to, label, icon: Icon }) => (
                 <NavLink
                   key={to}

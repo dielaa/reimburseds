@@ -3,6 +3,8 @@ import Login from "../pages/Login";
 import Riwayat from "../pages/Riwayat";
 import Profile from "../pages/Profile";
 import Ajukan from "../pages/karyawan/Ajukan";
+import Draft from "../pages/karyawan/Draft";
+import EditDraft from "../pages/karyawan/EditDraft";
 import ProtectedRoute from "../components/ProtectedRoute";
 import RoleDashboard from "./RoleDashboard";
 import RoleDetail from "./RoleDetail";
@@ -27,6 +29,22 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <Ajukan />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/draft"
+          element={
+            <ProtectedRoute>
+              <Draft />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/draft/:id"
+          element={
+            <ProtectedRoute>
+              <EditDraft />
             </ProtectedRoute>
           }
         />
