@@ -25,6 +25,9 @@ class Reimbursement extends Model
         'paid_at',
         'payment_proof_path',
         'payment_proof_original_name',
+        'payment_confirmed_at',
+        'payment_revision_reason',
+        'payment_revision_requested_at',
     ];
 
     protected function casts(): array
@@ -33,6 +36,8 @@ class Reimbursement extends Model
             'date' => 'date',
             'submitted_at' => 'datetime',
             'paid_at' => 'datetime',
+            'payment_confirmed_at' => 'datetime',
+            'payment_revision_requested_at' => 'datetime',
             'total_amount' => 'decimal:2',
             'status' => ReimbursementStatus::class,
         ];
@@ -43,7 +48,7 @@ class Reimbursement extends Model
         return $this->belongsTo(User::class);
     }
 
-    
+
     public function items(): HasMany
     {
         return $this->hasMany(ReimbursementItem::class);
