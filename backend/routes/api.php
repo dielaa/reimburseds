@@ -41,6 +41,7 @@ Route::middleware('auth.token')->group(function () {
         Route::post('/reimbursements/{reimbursement}/submit', [ReimbursementController::class, 'submit']);
 
         Route::post('/reimbursements/{reimbursement}/items', [ReimbursementItemController::class, 'store']);
+        Route::put('/reimbursements/{reimbursement}/items/{item}', [ReimbursementItemController::class, 'update']);
         Route::delete('/reimbursements/{reimbursement}/items/{item}', [ReimbursementItemController::class, 'destroy']);
 
         Route::post('/reimbursements/{reimbursement}/documents', [ReimbursementDocumentController::class, 'store']);
