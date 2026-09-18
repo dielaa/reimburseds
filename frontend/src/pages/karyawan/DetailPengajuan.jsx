@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { FaArrowLeft, FaInfoCircle, FaPaperclip, FaFileAlt, FaEye, FaListUl, FaImage } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaInfoCircle,
+  FaPaperclip,
+  FaFileAlt,
+  FaEye,
+  FaListUl,
+  FaImage,
+} from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import StatusBadge from "../../components/StatusBadge";
 import ApprovalTimeline from "../../components/ApprovalTimeline";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
-import api, { CATEGORY_LABELS, DOCUMENT_TYPE_LABELS, formatCurrency, formatDate, getStoredUser } from "../../services/api";
+import api, {
+  CATEGORY_LABELS,
+  DOCUMENT_TYPE_LABELS,
+  formatCurrency,
+  formatDate,
+  getStoredUser,
+} from "../../services/api";
 
 export default function DetailPengajuan() {
   const { id } = useParams();
@@ -73,18 +87,25 @@ export default function DetailPengajuan() {
 
   return (
     <DashboardLayout>
-      <Link to="/riwayat" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4 text-sm">
+      <Link
+        to="/riwayat"
+        className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4 text-sm"
+      >
         <FaArrowLeft size={13} /> Kembali ke Riwayat
       </Link>
 
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-slate-900">#REIM-{String(data.id).padStart(4, "0")}</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            #REIM-{String(data.id).padStart(4, "0")}
+          </h2>
           <StatusBadge status={status} />
         </div>
         <div className="sm:text-right">
           <p className="text-xs text-gray-400">Tanggal Transaksi</p>
-          <p className="text-sm font-semibold text-slate-900">{formatDate(data.date)}</p>
+          <p className="text-sm font-semibold text-slate-900">
+            {formatDate(data.date)}
+          </p>
         </div>
       </div>
 
@@ -92,6 +113,18 @@ export default function DetailPengajuan() {
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-5 py-4 mb-6">
           <span className="font-semibold">Alasan Penolakan: </span>
           {data.rejection_reason}
+        </div>
+      )}
+
+      {status === "diproses" && data.payment_revision_reason && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg px-5 py-4 mb-6">
+          <span className="font-semibold">
+            Revisi bukti transfer sudah Anda ajukan:{" "}
+          </span>
+          {data.payment_revision_reason}
+          <p className="mt-1 text-amber-600">
+            Menunggu Finance mengunggah ulang bukti transfer yang benar.
+          </p>
         </div>
       )}
 
@@ -106,33 +139,42 @@ export default function DetailPengajuan() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Project</p>
-                <p className="font-semibold text-slate-900">{data.project || "-"}</p>
+                <p className="font-semibold text-slate-900">
+                  {data.project || "-"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Nama Pemohon</p>
                 <p className="font-semibold text-slate-900">
-                  {data.user?.name} {data.user?.department ? `(${data.user.department})` : ""}
+                  {data.user?.name}{" "}
+                  {data.user?.department ? `(${data.user.department})` : ""}
                 </p>
               </div>
             </div>
 
             <div className="mb-4">
               <p className="text-xs text-gray-400 mb-1">Tujuan / Keperluan</p>
-              <p className="bg-gray-50 rounded-md px-4 py-3 text-sm text-slate-700">{data.purpose}</p>
+              <p className="bg-gray-50 rounded-md px-4 py-3 text-sm text-slate-700">
+                {data.purpose}
+              </p>
             </div>
 
             <div className="bg-indigo-50 rounded-md px-4 py-3 inline-block">
               <p className="text-xs text-gray-400 mb-1">Total Diajukan</p>
-              <p className="text-lg font-bold text-slate-900">{formatCurrency(data.total_amount)}</p>
+              <p className="text-lg font-bold text-slate-900">
+                {formatCurrency(data.total_amount)}
+              </p>
             </div>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
-              <FaListUl className="text-gray-400" /> Rincian Biaya ({(data.items || []).length} item)
+              <FaListUl className="text-gray-400" /> Rincian Biaya (
+              {(data.items || []).length} item)
             </h3>
             <hr className="border-gray-100 mb-4" />
             <div className="space-y-3">
+
               {(data.items || []).map((item) => {
                 const itemDocs = (data.documents || []).filter((d) => d.reimbursement_item_id === item.id);
                 return (
@@ -172,16 +214,8 @@ export default function DetailPengajuan() {
                   </div>
                 );
               })}
-              {(data.items || []).length === 0 && (
-                <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
-              )}
-            </div>
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm font-semibold text-slate-900">Total Keseluruhan</p>
-              <p className="text-base font-bold text-slate-900">{formatCurrency(data.total_amount)}</p>
             </div>
           </div>
-
           {(() => {
             const itemIds = new Set((data.items || []).map((item) => item.id));
             const otherDocs = (data.documents || []).filter((doc) => !itemIds.has(doc.reimbursement_item_id));
@@ -220,6 +254,7 @@ export default function DetailPengajuan() {
                     <p className="text-sm text-gray-400">Tidak ada lampiran lain di luar item biaya.</p>
                   )}
                 </div>
+
               </div>
             );
           })()}
@@ -227,15 +262,20 @@ export default function DetailPengajuan() {
           {data.payment_proof_original_name && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
-                <FaImage className="text-gray-400" /> Bukti Pembayaran dari Finance
+                <FaImage className="text-gray-400" /> Bukti Pembayaran dari
+                Finance
               </h3>
               <hr className="border-gray-100 mb-4" />
               <div className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <FaFileAlt className="text-teal-500 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{data.payment_proof_original_name}</p>
-                    <p className="text-xs text-gray-400">Bukti transfer pembayaran reimbursement Anda</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">
+                      {data.payment_proof_original_name}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Bukti transfer pembayaran reimbursement Anda
+                    </p>
                   </div>
                 </div>
                 <button
@@ -253,6 +293,82 @@ export default function DetailPengajuan() {
                   <FaEye />
                 </button>
               </div>
+
+              {user?.role === "karyawan" &&
+                isOwner &&
+                status === "dibayarkan" && (
+                  <>
+                    <hr className="border-gray-100 my-4" />
+                    <p className="text-sm text-gray-500 mb-4">
+                      Silakan cek mutasi rekening Anda dan cocokkan dengan bukti
+                      transfer di atas. Jika dana sudah masuk sesuai, klik{" "}
+                      <span className="font-medium text-slate-700">
+                        Sudah Sesuai
+                      </span>
+                      . Jika belum masuk atau nominalnya tidak sesuai, klik{" "}
+                      <span className="font-medium text-slate-700">
+                        Ajukan Revisi
+                      </span>
+                      .
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={async () => {
+                          const confirm = await Swal.fire({
+                            title: "Konfirmasi dana sudah diterima?",
+                            text: "Pengajuan akan ditandai Selesai setelah Anda konfirmasi.",
+                            icon: "question",
+                            showCancelButton: true,
+                            confirmButtonText: "Ya, Sudah Sesuai",
+                            confirmButtonColor: "#16a34a",
+                            cancelButtonText: "Batal",
+                          });
+                          if (confirm.isConfirmed) {
+                            runAction(
+                              () =>
+                                api.post(
+                                  `/reimbursements/${data.id}/confirm-payment`,
+                                ),
+                              "Terima kasih, pembayaran telah diverifikasi.",
+                            );
+                          }
+                        }}
+                        disabled={actionLoading}
+                        className="h-10 px-5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium disabled:opacity-60"
+                      >
+                        Sudah Sesuai / Verifikasi
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const { value: reason } = await Swal.fire({
+                            title: "Ajukan Revisi Bukti Transfer",
+                            input: "textarea",
+                            inputPlaceholder:
+                              "Jelaskan ketidaksesuaian, mis. dana belum masuk / nominal tidak sesuai (min. 5 karakter)...",
+                            showCancelButton: true,
+                            confirmButtonText: "Kirim Revisi",
+                            confirmButtonColor: "#d97706",
+                            cancelButtonText: "Batal",
+                          });
+                          if (reason) {
+                            runAction(
+                              () =>
+                                api.post(
+                                  `/reimbursements/${data.id}/request-revision`,
+                                  { reason },
+                                ),
+                              "Permintaan revisi telah dikirim ke Finance.",
+                            );
+                          }
+                        }}
+                        disabled={actionLoading}
+                        className="h-10 px-5 rounded-md border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm font-medium disabled:opacity-60"
+                      >
+                        Ajukan Revisi
+                      </button>
+                    </div>
+                  </>
+                )}
             </div>
           )}
 
@@ -262,7 +378,10 @@ export default function DetailPengajuan() {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() =>
-                    runAction(() => api.post(`/reimbursements/${data.id}/submit`), "Pengajuan berhasil dikirim.")
+                    runAction(
+                      () => api.post(`/reimbursements/${data.id}/submit`),
+                      "Pengajuan berhasil dikirim.",
+                    )
                   }
                   disabled={actionLoading}
                   className="h-10 px-5 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium disabled:opacity-60"
@@ -279,7 +398,10 @@ export default function DetailPengajuan() {
                       confirmButtonColor: "#dc2626",
                     });
                     if (confirm.isConfirmed) {
-                      await runAction(() => api.delete(`/reimbursements/${data.id}`), "Draft berhasil dihapus.");
+                      await runAction(
+                        () => api.delete(`/reimbursements/${data.id}`),
+                        "Draft berhasil dihapus.",
+                      );
                       navigate("/riwayat");
                     }
                   }}

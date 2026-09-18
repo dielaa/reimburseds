@@ -25,13 +25,24 @@ class TelegramService
 
         if ($buttonUrl) {
             $payload['reply_markup'] = json_encode([
-                'inline_keyboard' => [[
-                    ['text' => $buttonLabel, 'url' => $buttonUrl],
-                ]],
+                'inline_keyboard' => [
+                    [
+                        ['text' => $buttonLabel, 'url' => $buttonUrl],
+                    ]
+                ],
             ]);
         }
 
-        Http::post("https://api.telegram.org/bot{$this->token}/sendMessage", $payload);
+        $response = Http::post(
+            "https://api.telegram.org/bot{$this->token}/sendMessage",
+            $payload
+        );
+
+        \Log::info('TELEGRAM SEND RESULT', [
+            'chat_id' => $chatId,
+            'status' => $response->status(),
+            'response' => $response->json(),
+        ]);
     }
 
     public function notifyUser(User $user, string $text, ?string $buttonUrl = null): void
@@ -46,7 +57,7 @@ class TelegramService
         User::where('role', $role)
             ->whereNotNull('telegram_chat_id')
             ->get()
-            ->each(fn (User $u) => $this->sendMessage($u->telegram_chat_id, $text, $buttonUrl));
+            ->each(fn(User $u) => $this->sendMessage($u->telegram_chat_id, $text, $buttonUrl));
     }
 
     public function generateLinkToken(User $user): string

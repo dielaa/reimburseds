@@ -11,7 +11,7 @@ class ReimbursementDocument extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['reimbursement_id', 'file', 'original_name', 'document_type'];
+    protected $fillable = ['reimbursement_id', 'reimbursement_item_id', 'file', 'original_name', 'document_type'];
 
     protected function casts(): array
     {
@@ -23,5 +23,10 @@ class ReimbursementDocument extends Model
     public function reimbursement(): BelongsTo
     {
         return $this->belongsTo(Reimbursement::class);
+    }
+
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(ReimbursementItem::class, 'reimbursement_item_id');
     }
 }

@@ -26,10 +26,21 @@ import api, {
 const CATEGORY_ICON = "📄";
 
 const STAGE_CONFIG = {
-  disetujui: { badge: "Menunggu Finance", action: "verify", actionLabel: "Setujui & Proses" },
-  verifikasi_finance: { badge: "Verifikasi Finance", action: "process", actionLabel: "Proses Pembayaran" },
-  diproses: { badge: "Diproses", action: "pay", actionLabel: "Tandai Dibayarkan" },
-  dibayarkan: { badge: "Dibayarkan", action: "complete", actionLabel: "Selesaikan" },
+  disetujui: {
+    badge: "Menunggu Finance",
+    action: "verify",
+    actionLabel: "Setujui & Proses",
+  },
+  verifikasi_finance: {
+    badge: "Verifikasi Finance",
+    action: "process",
+    actionLabel: "Proses Pembayaran",
+  },
+  diproses: {
+    badge: "Diproses",
+    action: "pay",
+    actionLabel: "Tandai Dibayarkan",
+  },
 };
 
 const CAN_REJECT = ["disetujui", "verifikasi_finance"];
@@ -74,7 +85,9 @@ export default function VerifikasiPengajuan() {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await api.post(`/reimbursements/${id}/${stage.action}`, { note: note || undefined });
+        await api.post(`/reimbursements/${id}/${stage.action}`, {
+          note: note || undefined,
+        });
       }
       await Swal.fire("Berhasil", "Aksi berhasil diproses.", "success");
       setNote("");
@@ -140,19 +153,46 @@ export default function VerifikasiPengajuan() {
 
   return (
     <DashboardLayout>
-      <Link to="/riwayat" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4 text-sm">
+      <Link
+        to="/riwayat"
+        className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4 text-sm"
+      >
         <FaArrowLeft size={13} /> Kembali ke Riwayat
       </Link>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-        <h2 className="text-2xl font-bold text-slate-900">Verifikasi #REIM-{String(data.id).padStart(4, "0")}</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          Verifikasi #REIM-{String(data.id).padStart(4, "0")}
+        </h2>
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold w-fit">
-          <FaHourglassHalf size={11} /> {stage?.badge || STATUS_LABELS[data.status]}
+          <FaHourglassHalf size={11} />{" "}
+          {stage?.badge || STATUS_LABELS[data.status]}
         </span>
       </div>
       <p className="text-sm text-gray-500 mb-6">
-        Diajukan oleh {data.user?.name} ({data.user?.department || "-"}) pada {formatDate(data.date)}
+        Diajukan oleh {data.user?.name} ({data.user?.department || "-"}) pada{" "}
+        {formatDate(data.date)}
       </p>
+
+      {data.status === "diproses" && data.payment_revision_reason && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg px-5 py-4 mb-6">
+          <span className="font-semibold">
+            Karyawan mengajukan revisi bukti transfer:{" "}
+          </span>
+          {data.payment_revision_reason}
+          <p className="mt-1 text-amber-600">
+            Mohon periksa kembali nominal/rekening tujuan, lalu unggah ulang
+            bukti transfer yang benar.
+          </p>
+        </div>
+      )}
+
+      {data.status === "dibayarkan" && (
+        <div className="bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm rounded-lg px-5 py-4 mb-6">
+          Bukti transfer sudah dikirim ke karyawan. Menunggu karyawan
+          memverifikasi apakah dana sudah diterima sesuai atau perlu revisi.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -166,7 +206,9 @@ export default function VerifikasiPengajuan() {
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="text-xs text-gray-400 mb-2">Total Nominal</p>
-              <p className="text-lg font-bold text-green-600">{formatCurrency(data.total_amount)}</p>
+              <p className="text-lg font-bold text-green-600">
+                {formatCurrency(data.total_amount)}
+              </p>
             </div>
           </div>
 
@@ -177,7 +219,8 @@ export default function VerifikasiPengajuan() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
-              <FaReceipt className="text-gray-400" /> Rincian Biaya ({(data.items || []).length} item)
+              <FaReceipt className="text-gray-400" /> Rincian Biaya (
+              {(data.items || []).length} item)
             </h3>
             <div className="space-y-3">
               {(data.items || []).map((item) => {
@@ -218,16 +261,8 @@ export default function VerifikasiPengajuan() {
                   </div>
                 );
               })}
-              {(data.items || []).length === 0 && (
-                <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
-              )}
-            </div>
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm font-semibold text-slate-900">Total Keseluruhan</p>
-              <p className="text-base font-bold text-green-600">{formatCurrency(data.total_amount)}</p>
             </div>
           </div>
-
           {(() => {
             const itemIds = new Set((data.items || []).map((item) => item.id));
             const otherDocs = (data.documents || []).filter((doc) => !itemIds.has(doc.reimbursement_item_id));
@@ -303,27 +338,36 @@ export default function VerifikasiPengajuan() {
                     <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
                       <FaCloudUploadAlt size={18} />
                     </div>
-                    <p className="text-xs text-gray-600">Klik untuk mengunggah foto bukti transfer</p>
-                    <p className="text-xs text-gray-400">Format: PDF, JPG, PNG (Maks. 5MB)</p>
+                    <p className="text-xs text-gray-600">
+                      Klik untuk mengunggah foto bukti transfer
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Format: PDF, JPG, PNG (Maks. 5MB)
+                    </p>
                     <input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
-                      onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                      onChange={(e) =>
+                        setProofFile(e.target.files?.[0] || null)
+                      }
                     />
                   </label>
                   {proofFile && (
                     <div className="mt-2 flex items-center gap-2 bg-indigo-50 rounded-md px-3 py-2 text-xs text-slate-700">
                       <FaFileAlt className="text-indigo-400 shrink-0" />
                       <span className="truncate">
-                        {proofFile.name} ({(proofFile.size / 1024 / 1024).toFixed(1)} MB)
+                        {proofFile.name} (
+                        {(proofFile.size / 1024 / 1024).toFixed(1)} MB)
                       </span>
                     </div>
                   )}
                 </div>
               )}
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">Catatan Finance (Opsional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Catatan Finance (Opsional)
+              </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}

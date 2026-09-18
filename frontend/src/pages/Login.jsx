@@ -18,7 +18,8 @@ export default function Login() {
   const validate = () => {
     const newErrors = {};
     if (!form.email) newErrors.email = "Email wajib diisi";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Format email tidak valid";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      newErrors.email = "Format email tidak valid";
     if (!form.password) newErrors.password = "Password wajib diisi";
     return newErrors;
   };
@@ -44,11 +45,16 @@ export default function Login() {
       if (err.response?.status === 422) {
         setErrors(
           Object.fromEntries(
-            Object.entries(err.response.data.errors || {}).map(([k, v]) => [k, v[0]])
-          )
+            Object.entries(err.response.data.errors || {}).map(([k, v]) => [
+              k,
+              v[0],
+            ]),
+          ),
         );
       } else if (err.response?.status === 401) {
-        setServerError(err.response.data.message || "Email atau password salah.");
+        setServerError(
+          err.response.data.message || "Email atau password salah.",
+        );
       } else {
         setServerError("Tidak dapat terhubung ke server. Coba lagi.");
       }
@@ -58,8 +64,10 @@ export default function Login() {
   };
 
   return (
-        <div className="w-full min-h-screen bg-[#f4f5fb] flex items-center justify-center px-4 py-10">
-      <span className="absolute top-6 left-6 text-gray-300 font-medium hidden sm:inline">Login</span>
+    <div className="w-full min-h-screen bg-[#f4f5fb] flex items-center justify-center px-4 py-10">
+      <span className="absolute top-6 left-6 text-gray-300 font-medium hidden sm:inline">
+        Login
+      </span>
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-10">
         {/* Logo */}
@@ -73,7 +81,9 @@ export default function Login() {
             />
           </div>
           <h1 className="text-3xl font-bold text-slate-900">Reimbursement</h1>
-          <p className="text-gray-400 text-sm mt-1">PT Dasa Aprilindo Sentosa</p>
+          <p className="text-gray-400 text-sm mt-1">
+            PT Dasa Aprilindo Sentosa
+          </p>
         </div>
 
         {/* Form */}
@@ -85,23 +95,33 @@ export default function Login() {
           )}
 
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">Email</label>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
               placeholder="Masukkan email Anda"
-              className={`w-full h-12 px-4 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${errors.email ? "border-red-400" : "border-gray-200"
-                }`}
+              className={`w-full h-12 px-4 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${
+                errors.email ? "border-red-400" : "border-gray-200"
+              }`}
             />
-            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+            )}
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-gray-700">Password</label>
-              <button type="button" className="text-sm text-blue-500 hover:underline">
+              <label className="text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <button
+                type="button"
+                className="text-sm text-blue-500 hover:underline"
+              >
                 Lupa password?
               </button>
             </div>
@@ -113,8 +133,9 @@ export default function Login() {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Masukkan password Anda"
-                className={`w-full h-12 px-4 pr-12 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${errors.password ? "border-red-400" : "border-gray-200"
-                  }`}
+                className={`w-full h-12 px-4 pr-12 rounded-lg border text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition ${
+                  errors.password ? "border-red-400" : "border-gray-200"
+                }`}
               />
               <button
                 type="button"
@@ -124,7 +145,9 @@ export default function Login() {
                 {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
               </button>
             </div>
-            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+            )}
           </div>
 
           <button

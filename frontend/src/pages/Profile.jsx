@@ -246,7 +246,9 @@ export default function Profile() {
                       <FaTelegramPlane size={13} />{" "}
                       {connectingTelegram
                         ? "Memproses..."
-                        : "Hubungkan Telegram"}
+                        : user?.telegram_chat_id
+                          ? "Telegram Terhubung"
+                          : "Hubungkan Telegram"}
                     </button>
                     <button
                       onClick={refreshUser}

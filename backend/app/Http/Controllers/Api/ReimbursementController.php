@@ -12,6 +12,7 @@ use App\Services\ReimbursementValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Services\TelegramService;
+use App\Http\Requests\RejectRequest;
 
 class ReimbursementController extends Controller
 {
@@ -203,6 +204,95 @@ class ReimbursementController extends Controller
             'message' => 'Pengajuan berhasil disubmit dan menunggu approval.',
             'warnings' => $warnings,
             'data' => $reimbursement->fresh(['items', 'documents', 'statusLogs']),
+        ]);
+    }
+
+    public function confirmPayment(Request $request, Reimbursement $reimbursement)
+    {
+        $user = $request->user();
+
+        if ($reimbursement->user_id !== $user->id) {
+            return response()->json(['message' => 'Anda tidak berhak memverifikasi pengajuan ini.'], 403);
+        }
+
+        if ($reimbursement->status !== ReimbursementStatus::DIBAYARKAN) {
+            return response()->json([
+                'message' => 'Verifikasi hanya dapat dilakukan saat pengajuan berstatus Dibayarkan.',
+            ], 422);
+        }
+
+        $reimbursement->update([
+            'status' => ReimbursementStatus::SELESAI->value,
+            'payment_confirmed_at' => now(),
+        ]);
+        $reimbursement->logStatus(
+            ReimbursementStatus::SELESAI,
+            'Karyawan memverifikasi dana sudah diterima sesuai bukti transfer.',
+            $user->id
+        );
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyRole(
+            'finance',
+            "✅ <b>Transfer Dikonfirmasi Karyawan</b>\n" .
+            "Karyawan: {$user->name}\n" .
+            "Pengajuan #REIM-" . str_pad($reimbursement->id, 4, '0', STR_PAD_LEFT) . " telah dikonfirmasi diterima dan selesai.",
+            $detailUrl
+        );
+
+        return response()->json([
+            'message' => 'Terima kasih, pembayaran telah diverifikasi dan pengajuan selesai.',
+            'data' => $reimbursement->fresh('statusLogs'),
+        ]);
+    }
+
+    /**
+     * FR-baru: Karyawan menandai bukti transfer belum sesuai/belum masuk,
+     * sehingga dikembalikan ke Finance untuk direvisi. Dibayarkan -> Diproses.
+     */
+    public function requestPaymentRevision(RejectRequest $request, Reimbursement $reimbursement)
+    {
+        $user = $request->user();
+
+        if ($reimbursement->user_id !== $user->id) {
+            return response()->json(['message' => 'Anda tidak berhak mengajukan revisi untuk pengajuan ini.'], 403);
+        }
+
+        if ($reimbursement->status !== ReimbursementStatus::DIBAYARKAN) {
+            return response()->json([
+                'message' => 'Revisi hanya dapat diajukan saat pengajuan berstatus Dibayarkan.',
+            ], 422);
+        }
+
+        $reason = $request->validated('reason');
+
+        $reimbursement->update([
+            'status' => ReimbursementStatus::DIPROSES->value,
+            'payment_revision_reason' => $reason,
+            'payment_revision_requested_at' => now(),
+        ]);
+        $reimbursement->logStatus(
+            ReimbursementStatus::DIPROSES,
+            "Karyawan mengajukan revisi bukti transfer: {$reason}",
+            $user->id
+        );
+
+        $detailUrl = config('services.app.frontend_url') . "/riwayat/{$reimbursement->id}";
+
+        $this->telegram->notifyRole(
+            'finance',
+            "⚠️ <b>Revisi Bukti Transfer Diminta</b>\n" .
+            "Karyawan: {$user->name}\n" .
+            "Pengajuan #REIM-" . str_pad($reimbursement->id, 4, '0', STR_PAD_LEFT) . "\n" .
+            "Alasan: {$reason}\n" .
+            "Mohon periksa & unggah ulang bukti transfer.",
+            $detailUrl
+        );
+
+        return response()->json([
+            'message' => 'Permintaan revisi telah dikirim ke Finance.',
+            'data' => $reimbursement->fresh('statusLogs'),
         ]);
     }
 

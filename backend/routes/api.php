@@ -39,6 +39,8 @@ Route::middleware('auth.token')->group(function () {
         Route::put('/reimbursements/{reimbursement}', [ReimbursementController::class, 'update']);
         Route::delete('/reimbursements/{reimbursement}', [ReimbursementController::class, 'destroy']);
         Route::post('/reimbursements/{reimbursement}/submit', [ReimbursementController::class, 'submit']);
+        Route::post('/reimbursements/{reimbursement}/confirm-payment', [ReimbursementController::class, 'confirmPayment']);
+        Route::post('/reimbursements/{reimbursement}/request-revision', [ReimbursementController::class, 'requestPaymentRevision']);
 
         Route::post('/reimbursements/{reimbursement}/items', [ReimbursementItemController::class, 'store']);
         Route::put('/reimbursements/{reimbursement}/items/{item}', [ReimbursementItemController::class, 'update']);

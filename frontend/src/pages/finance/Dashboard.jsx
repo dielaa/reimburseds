@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaFileInvoice, FaExclamationCircle, FaClipboardCheck, FaWallet, FaSearch, FaEye } from "react-icons/fa";
+import {
+  FaFileInvoice,
+  FaExclamationCircle,
+  FaClipboardCheck,
+  FaWallet,
+  FaSearch,
+  FaEye,
+} from "react-icons/fa";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import AlertBanner from "../../components/AlertBanner";
 import StatCard from "../../components/StatCard";
@@ -28,10 +35,18 @@ export default function FinanceDashboard() {
       .then(([dash, disetujui, verifikasi, dibayarkan, selesai, all]) => {
         if (!active) return;
         setSummary(dash.data.summary);
-        const readyToVerify = [...(disetujui.data.data?.data || []), ...(verifikasi.data.data?.data || [])];
+        const readyToVerify = [
+          ...(disetujui.data.data?.data || []),
+          ...(verifikasi.data.data?.data || []),
+        ];
         setPending(readyToVerify);
-        const paidRows = [...(dibayarkan.data.data?.data || []), ...(selesai.data.data?.data || [])];
-        setTotalPaid(paidRows.reduce((sum, row) => sum + Number(row.total_amount || 0), 0));
+        const paidRows = [
+          ...(dibayarkan.data.data?.data || []),
+          ...(selesai.data.data?.data || []),
+        ];
+        setTotalPaid(
+          paidRows.reduce((sum, row) => sum + Number(row.total_amount || 0), 0),
+        );
         setRecentLogs((all.data.data?.data || []).slice(0, 3));
       })
       .catch(() => {})
@@ -42,26 +57,58 @@ export default function FinanceDashboard() {
   }, []);
 
   const stats = [
-    { label: "Total Masuk (Bulan Ini)", value: summary?.total ?? 0, icon: <FaFileInvoice />, iconBg: "#e0e7ff", iconColor: "#4f46e5" },
-    { label: "Siap Verifikasi", value: pending.length, icon: <FaExclamationCircle />, iconBg: "#fef3c7", iconColor: "#d97706" },
-    { label: "Telah Disetujui", value: summary?.disetujui ?? 0, icon: <FaClipboardCheck />, iconBg: "#d1fae5", iconColor: "#059669" },
-    { label: "Sudah Cair (Total)", value: formatCurrency(totalPaid), icon: <FaWallet />, iconBg: "#cffafe", iconColor: "#0891b2" },
+    {
+      label: "Total Masuk (Bulan Ini)",
+      value: summary?.total ?? 0,
+      icon: <FaFileInvoice />,
+      iconBg: "#e0e7ff",
+      iconColor: "#4f46e5",
+    },
+    {
+      label: "Siap Verifikasi",
+      value: pending.length,
+      icon: <FaExclamationCircle />,
+      iconBg: "#fef3c7",
+      iconColor: "#d97706",
+    },
+    {
+      label: "Telah Disetujui",
+      value: summary?.disetujui ?? 0,
+      icon: <FaClipboardCheck />,
+      iconBg: "#d1fae5",
+      iconColor: "#059669",
+    },
+    {
+      label: "Sudah Cair (Total)",
+      value: formatCurrency(totalPaid),
+      icon: <FaWallet />,
+      iconBg: "#cffafe",
+      iconColor: "#0891b2",
+    },
   ];
 
   const filtered = pending.filter((row) => {
     const term = search.toLowerCase();
-    return !term || row.user?.name?.toLowerCase().includes(term) || row.project?.name?.toLowerCase().includes(term);
+    return (
+      !term ||
+      row.user?.name?.toLowerCase().includes(term) ||
+      row.project?.name?.toLowerCase().includes(term)
+    );
   });
 
   return (
     <DashboardLayout>
       <AlertBanner>
-        <span className="font-semibold">Perhatian:</span> Verifikasi kelengkapan nota & kuitansi.
-        Reimbursement cair tgl 15 & 30 setiap bulan.
+        <span className="font-semibold">Perhatian:</span> Verifikasi kelengkapan
+        nota & kuitansi. Reimbursement cair tgl 15 & 30 setiap bulan.
       </AlertBanner>
 
-      <h2 className="text-2xl font-bold text-slate-900 mb-1">Finance Dashboard</h2>
-      <p className="text-gray-500 text-sm mb-6">Verifikasi dan proses pencairan reimbursement karyawan.</p>
+      <h2 className="text-2xl font-bold text-slate-900 mb-1">
+        Finance Dashboard
+      </h2>
+      <p className="text-gray-500 text-sm mb-6">
+        Verifikasi dan proses pencairan reimbursement karyawan.
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         {stats.map((s) => (
@@ -73,11 +120,18 @@ export default function FinanceDashboard() {
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Daftar Pengajuan Siap Diverifikasi</h3>
-              <p className="text-xs text-gray-400">Menunggu review dokumen (Nota & Kuitansi)</p>
+              <h3 className="text-lg font-bold text-slate-900">
+                Daftar Pengajuan Siap Diverifikasi
+              </h3>
+              <p className="text-xs text-gray-400">
+                Menunggu review dokumen (Nota & Kuitansi)
+              </p>
             </div>
-                        <div className="relative w-full sm:w-auto">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+            <div className="relative w-full sm:w-auto">
+              <FaSearch
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={12}
+              />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -109,12 +163,21 @@ export default function FinanceDashboard() {
                 )}
                 {!loading &&
                   filtered.map((row, i) => (
-                    <tr key={row.id} className="border-b border-gray-50 last:border-0">
+                    <tr
+                      key={row.id}
+                      className="border-b border-gray-50 last:border-0"
+                    >
                       <td className="py-4 px-6">{i + 1}</td>
-                      <td className="py-4 px-2 whitespace-nowrap">{formatDate(row.date)}</td>
+                      <td className="py-4 px-2 whitespace-nowrap">
+                        {formatDate(row.date)}
+                      </td>
                       <td className="py-4 px-2">
-                        <p className="font-semibold text-slate-900">{row.user?.name}</p>
-                        <p className="text-xs text-gray-400">{row.user?.department}</p>
+                        <p className="font-semibold text-slate-900">
+                          {row.user?.name}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {row.user?.department}
+                        </p>
                       </td>
                       <td className="py-4 px-2">
                         <StatusBadge status={row.status} />
@@ -123,7 +186,10 @@ export default function FinanceDashboard() {
                         {formatCurrency(row.total_amount)}
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <Link to={`/riwayat/${row.id}`} className="text-gray-400 hover:text-gray-600 inline-block">
+                        <Link
+                          to={`/riwayat/${row.id}`}
+                          className="text-gray-400 hover:text-gray-600 inline-block"
+                        >
                           <FaEye />
                         </Link>
                       </td>
@@ -141,28 +207,42 @@ export default function FinanceDashboard() {
           </div>
 
           <div className="text-center py-4">
-            <Link to="/riwayat" className="text-orange-500 font-medium hover:underline text-sm">
+            <Link
+              to="/riwayat"
+              className="text-orange-500 font-medium hover:underline text-sm"
+            >
               Lihat Semua Pengajuan
             </Link>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5 h-fit">
-          <h3 className="font-bold text-slate-900 mb-1">Riwayat Verifikasi (Terakhir)</h3>
+          <h3 className="font-bold text-slate-900 mb-1">
+            Riwayat Verifikasi (Terakhir)
+          </h3>
           <p className="text-xs text-gray-400 mb-4">Aktivitas approval Anda</p>
           <div className="space-y-4">
             {recentLogs.map((row) => (
-              <div key={row.id} className="flex items-start justify-between gap-2">
+              <div
+                key={row.id}
+                className="flex items-start justify-between gap-2"
+              >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900 truncate">
                     #REIM-{String(row.id).padStart(4, "0")}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">{row.purpose}</p>
-                  <p className="text-xs text-gray-400">{formatDate(row.date)}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {row.purpose}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {formatDate(row.date)}
+                  </p>
                 </div>
                 <div className="text-right shrink-0">
                   <StatusBadge status={row.status} />
-                  <p className="text-xs font-medium text-slate-700 mt-1">{formatCurrency(row.total_amount)}</p>
+                  <p className="text-xs font-medium text-slate-700 mt-1">
+                    {formatCurrency(row.total_amount)}
+                  </p>
                 </div>
               </div>
             ))}

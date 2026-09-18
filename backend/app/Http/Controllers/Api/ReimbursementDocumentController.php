@@ -32,6 +32,7 @@ class ReimbursementDocumentController extends Controller
         $path = $file->store('reimbursement-documents/' . $reimbursement->id, 'local');
 
         $document = $reimbursement->documents()->create([
+            'reimbursement_item_id' => $request->validated('reimbursement_item_id'),
             'file' => $path,
             'original_name' => $file->getClientOriginalName(),
             'document_type' => $request->validated('document_type'),
