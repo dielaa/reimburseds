@@ -29,6 +29,7 @@ function emptyItem() {
     categoryOther: "",
     description: "",
     amount: "",
+    files: [], // [{ file, document_type }] — foto/bukti khusus item ini
   };
 }
 
@@ -36,7 +37,6 @@ export default function Ajukan() {
   const navigate = useNavigate();
   const user = getStoredUser();
 
-  const [files, setFiles] = useState([]); // [{ file, document_type }]
   const [submitting, setSubmitting] = useState(null); // "draft" | "submit" | null
 
   const [form, setForm] = useState({
@@ -49,6 +49,7 @@ export default function Ajukan() {
   const [items, setItems] = useState([emptyItem()]);
 
   const grandTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const totalFiles = items.reduce((sum, item) => sum + item.files.length, 0);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -66,24 +67,35 @@ export default function Ajukan() {
     setItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
   };
 
-  const handleFilesChange = (e) => {
+  const handleItemFilesChange = (itemIndex, e) => {
     const picked = Array.from(e.target.files || []);
-    if (picked.length === 0) return;
-    setFiles((prev) => [
-      ...prev,
-      ...picked.map((file) => ({ file, document_type: "nota" })),
-    ]);
     e.target.value = "";
-  };
-
-  const updateFileDocType = (index, value) => {
-    setFiles((prev) =>
-      prev.map((f, i) => (i === index ? { ...f, document_type: value } : f)),
+    if (picked.length === 0) return;
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === itemIndex
+          ? { ...it, files: [...it.files, ...picked.map((file) => ({ file, document_type: "nota" }))] }
+          : it,
+      ),
     );
   };
 
-  const removeFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  const updateItemFileDocType = (itemIndex, fileIndex, value) => {
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === itemIndex
+          ? { ...it, files: it.files.map((f, fi) => (fi === fileIndex ? { ...f, document_type: value } : f)) }
+          : it,
+      ),
+    );
+  };
+
+  const removeItemFile = (itemIndex, fileIndex) => {
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === itemIndex ? { ...it, files: it.files.filter((_, fi) => fi !== fileIndex) } : it,
+      ),
+    );
   };
 
   const buildPayload = () => ({
@@ -107,14 +119,19 @@ export default function Ajukan() {
   const createReimbursement = async () => {
     const res = await api.post("/reimbursements", buildPayload());
     const reimbursement = res.data.data;
+    const savedItems = reimbursement.items || [];
 
-    for (const item of files) {
-      const fd = new FormData();
-      fd.append("file", item.file);
-      fd.append("document_type", item.document_type);
-      await api.post(`/reimbursements/${reimbursement.id}/documents`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    for (let i = 0; i < items.length; i += 1) {
+      const savedItemId = savedItems[i]?.id;
+      for (const f of items[i].files) {
+        const fd = new FormData();
+        fd.append("file", f.file);
+        fd.append("document_type", f.document_type);
+        if (savedItemId) fd.append("reimbursement_item_id", savedItemId);
+        await api.post(`/reimbursements/${reimbursement.id}/documents`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
     }
 
     return reimbursement;
@@ -172,10 +189,10 @@ export default function Ajukan() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateBase()) return;
-    if (files.length < MIN_DOCUMENTS) {
+    if (totalFiles < MIN_DOCUMENTS) {
       Swal.fire(
         "Bukti transaksi kurang",
-        `Mohon unggah minimal ${MIN_DOCUMENTS} bukti transaksi sebelum mengirim pengajuan.`,
+        `Mohon unggah minimal ${MIN_DOCUMENTS} bukti transaksi (foto/struk) pada salah satu item sebelum mengirim pengajuan.`,
         "warning",
       );
       return;
@@ -381,89 +398,79 @@ export default function Ajukan() {
                     />
                   </Field>
                 </div>
+
+                {/* Lampiran Bukti khusus item ini */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <FaPaperclip className="text-gray-400" size={12} /> Foto/Bukti Item Ini{" "}
+                    <span className="text-gray-400 font-normal">({item.files.length} file)</span>
+                  </label>
+
+                  <label className="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-gray-200 rounded-lg py-6 cursor-pointer hover:bg-gray-50 transition bg-white">
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
+                      <FaCloudUploadAlt size={16} />
+                    </div>
+                    <p className="text-xs text-gray-600">Klik untuk unggah foto/struk item ini</p>
+                    <p className="text-[11px] text-gray-400">PDF, JPG, PNG (Maks. 5MB per file)</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => handleItemFilesChange(idx, e)}
+                    />
+                  </label>
+
+                  {item.files.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {item.files.map((f, fileIdx) => (
+                        <div
+                          key={`${f.file.name}-${fileIdx}`}
+                          className="flex items-center gap-3 bg-indigo-50 rounded-md px-3 py-2 text-sm text-slate-700"
+                        >
+                          <FaFileAlt className="text-indigo-400 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate">
+                              {f.file.name} ({(f.file.size / 1024 / 1024).toFixed(1)} MB)
+                            </p>
+                          </div>
+                          <select
+                            value={f.document_type}
+                            onChange={(e) => updateItemFileDocType(idx, fileIdx, e.target.value)}
+                            className="h-9 px-2 rounded-md border border-gray-200 text-xs bg-white shrink-0"
+                          >
+                            {Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeItemFile(idx, fileIdx)}
+                            className="text-red-400 hover:text-red-600 shrink-0"
+                            title="Hapus"
+                          >
+                            <FaTrash size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
 
           <div className="flex items-center justify-between mt-5 bg-orange-50 border border-orange-100 rounded-lg px-5 py-4">
-            <p className="text-sm font-semibold text-slate-700">Total Keseluruhan</p>
+            <div>
+              <p className="text-sm font-semibold text-slate-700">Total Keseluruhan</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Total bukti transaksi terlampir: {totalFiles} file (minimal {MIN_DOCUMENTS})
+              </p>
+            </div>
             <p className="text-xl font-bold text-orange-600">{formatCurrency(grandTotal)}</p>
           </div>
-        </section>
-
-        <hr className="border-gray-100" />
-
-        {/* Lampiran Bukti */}
-        <section>
-          <h3 className="flex items-center gap-2 text-slate-900 font-semibold mb-5">
-            <FaPaperclip className="text-gray-400" /> Lampiran Bukti
-          </h3>
-
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Unggah Struk/Kwitansi <span className="text-red-500">*</span>{" "}
-            <span className="text-gray-400 font-normal">
-              (minimal {MIN_DOCUMENTS} file — saat ini {files.length})
-            </span>
-          </label>
-
-          <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg py-10 cursor-pointer hover:bg-gray-50 transition">
-            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
-              <FaCloudUploadAlt size={20} />
-            </div>
-            <p className="text-sm text-gray-600">
-              Klik untuk mengunggah atau seret file ke sini
-            </p>
-            <p className="text-xs text-gray-400">
-              Format didukung: PDF, JPG, PNG (Maks. 5MB per file)
-            </p>
-            <input
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              multiple
-              className="hidden"
-              onChange={handleFilesChange}
-            />
-          </label>
-
-          {files.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {files.map((item, idx) => (
-                <div
-                  key={`${item.file.name}-${idx}`}
-                  className="flex items-center gap-3 bg-indigo-50 rounded-md px-4 py-3 text-sm text-slate-700"
-                >
-                  <FaFileAlt className="text-indigo-400 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate">
-                      {item.file.name} (
-                      {(item.file.size / 1024 / 1024).toFixed(1)} MB)
-                    </p>
-                  </div>
-                  <select
-                    value={item.document_type}
-                    onChange={(e) => updateFileDocType(idx, e.target.value)}
-                    className="h-9 px-2 rounded-md border border-gray-200 text-xs bg-white shrink-0"
-                  >
-                    {Object.entries(DOCUMENT_TYPE_LABELS).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(idx)}
-                    className="text-red-400 hover:text-red-600 shrink-0"
-                    title="Hapus"
-                  >
-                    <FaTrash size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
         <hr className="border-gray-100" />

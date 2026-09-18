@@ -156,38 +156,73 @@ export default function ReviewPengajuan() {
             </div>
             <hr className="border-gray-100 mb-4" />
 
-            {(data.items || []).map((item, idx) => (
-              <div key={item.id} className={idx > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""}>
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-gray-400">
-                    {item.project ? `${item.project} · ` : ""}
-                    {CATEGORY_LABELS[item.category] || item.category}
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">{formatCurrency(item.amount)}</p>
-                </div>
-                <p className="text-sm text-slate-700">{item.description}</p>
-              </div>
-            ))}
+            {(data.items || []).map((item, idx) => {
+              const itemDocs = (data.documents || []).filter((d) => d.reimbursement_item_id === item.id);
+              return (
+                <div key={item.id} className={idx > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-gray-400">
+                      {item.project ? `${item.project} · ` : ""}
+                      {CATEGORY_LABELS[item.category] || item.category}
+                    </p>
+                    <p className="text-sm font-semibold text-slate-900">{formatCurrency(item.amount)}</p>
+                  </div>
+                  <p className="text-sm text-slate-700">{item.description}</p>
 
-            <hr className="border-gray-100 my-4" />
-            <p className="text-sm font-medium text-slate-700 mb-3">Bukti Lampiran ({(data.documents || []).length})</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {(data.documents || []).map((doc) => (
-                <button
-                  key={doc.id}
-                  onClick={() => setPreviewDoc(doc)}
-                  className="flex flex-col items-center gap-2 border border-gray-200 rounded-lg py-4 px-2 bg-gray-50 hover:bg-gray-100 transition"
-                >
-                  <FaFileAlt className="text-gray-400" size={22} />
-                  <p className="text-xs font-medium text-slate-700 text-center truncate w-full">
-                    {doc.original_name}
-                  </p>
-                </button>
-              ))}
-              {(data.documents || []).length === 0 && (
-                <p className="text-sm text-gray-400 col-span-3">Belum ada bukti transaksi.</p>
-              )}
-            </div>
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-slate-500 mb-2">
+                      Bukti Lampiran ({itemDocs.length})
+                    </p>
+                    {itemDocs.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {itemDocs.map((doc) => (
+                          <button
+                            key={doc.id}
+                            onClick={() => setPreviewDoc(doc)}
+                            className="flex flex-col items-center gap-2 border border-gray-200 rounded-lg py-4 px-2 bg-gray-50 hover:bg-gray-100 transition"
+                          >
+                            <FaFileAlt className="text-gray-400" size={22} />
+                            <p className="text-xs font-medium text-slate-700 text-center truncate w-full">
+                              {doc.original_name}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">Belum ada bukti transaksi untuk item ini.</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {(data.items || []).length === 0 && (
+              <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
+            )}
+
+            {(() => {
+              const itemIds = new Set((data.items || []).map((item) => item.id));
+              const otherDocs = (data.documents || []).filter((doc) => !itemIds.has(doc.reimbursement_item_id));
+              if (otherDocs.length === 0) return null;
+              return (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-sm font-medium text-slate-700 mb-3">Lampiran Lainnya ({otherDocs.length})</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {otherDocs.map((doc) => (
+                      <button
+                        key={doc.id}
+                        onClick={() => setPreviewDoc(doc)}
+                        className="flex flex-col items-center gap-2 border border-gray-200 rounded-lg py-4 px-2 bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <FaFileAlt className="text-gray-400" size={22} />
+                        <p className="text-xs font-medium text-slate-700 text-center truncate w-full">
+                          {doc.original_name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

@@ -133,20 +133,45 @@ export default function DetailPengajuan() {
             </h3>
             <hr className="border-gray-100 mb-4" />
             <div className="space-y-3">
-              {(data.items || []).map((item) => (
-                <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{item.description}</p>
-                    <p className="text-xs text-gray-400">
-                      {item.project ? `${item.project} · ` : ""}
-                      {CATEGORY_LABELS[item.category] || item.category}
-                    </p>
+              {(data.items || []).map((item) => {
+                const itemDocs = (data.documents || []).filter((d) => d.reimbursement_item_id === item.id);
+                return (
+                  <div key={item.id} className="bg-gray-50 rounded-md px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{item.description}</p>
+                        <p className="text-xs text-gray-400">
+                          {item.project ? `${item.project} · ` : ""}
+                          {CATEGORY_LABELS[item.category] || item.category}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900 whitespace-nowrap">
+                        {formatCurrency(item.amount)}
+                      </p>
+                    </div>
+                    {itemDocs.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 flex flex-wrap gap-2">
+                        {itemDocs.map((doc) => (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            onClick={() => {
+                              setPreviewIsPaymentProof(false);
+                              setPreviewDoc(doc);
+                            }}
+                            className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-md px-3 py-1.5 text-xs text-slate-700 hover:bg-gray-100"
+                            title="Lihat dokumen"
+                          >
+                            <FaFileAlt className="text-indigo-400" size={12} />
+                            <span className="max-w-[140px] truncate">{doc.original_name}</span>
+                            <FaEye className="text-gray-400" size={11} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm font-semibold text-slate-900 whitespace-nowrap">
-                    {formatCurrency(item.amount)}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
               {(data.items || []).length === 0 && (
                 <p className="text-sm text-gray-400">Belum ada rincian biaya.</p>
               )}
@@ -157,41 +182,47 @@ export default function DetailPengajuan() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
-              <FaPaperclip className="text-gray-400" /> Bukti Lampiran ({(data.documents || []).length})
-            </h3>
-            <hr className="border-gray-100 mb-4" />
+          {(() => {
+            const itemIds = new Set((data.items || []).map((item) => item.id));
+            const otherDocs = (data.documents || []).filter((doc) => !itemIds.has(doc.reimbursement_item_id));
+            return (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
+                  <FaPaperclip className="text-gray-400" /> Lampiran Lainnya ({otherDocs.length})
+                </h3>
+                <hr className="border-gray-100 mb-4" />
 
-            <div className="space-y-3">
-              {(data.documents || []).map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FaFileAlt className="text-indigo-400 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-900 truncate">{doc.original_name}</p>
-                      <p className="text-xs text-gray-400">
-                        {DOCUMENT_TYPE_LABELS[doc.document_type] || doc.document_type}
-                      </p>
+                <div className="space-y-3">
+                  {otherDocs.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between bg-gray-50 rounded-md px-4 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FaFileAlt className="text-indigo-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{doc.original_name}</p>
+                          <p className="text-xs text-gray-400">
+                            {DOCUMENT_TYPE_LABELS[doc.document_type] || doc.document_type}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setPreviewIsPaymentProof(false);
+                          setPreviewDoc(doc);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 shrink-0"
+                        title="Lihat dokumen"
+                      >
+                        <FaEye />
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setPreviewIsPaymentProof(false);
-                      setPreviewDoc(doc);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 shrink-0"
-                    title="Lihat dokumen"
-                  >
-                    <FaEye />
-                  </button>
+                  ))}
+                  {otherDocs.length === 0 && (
+                    <p className="text-sm text-gray-400">Tidak ada lampiran lain di luar item biaya.</p>
+                  )}
                 </div>
-              ))}
-              {(data.documents || []).length === 0 && (
-                <p className="text-sm text-gray-400">Belum ada bukti transaksi yang diunggah.</p>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })()}
 
           {data.payment_proof_original_name && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
